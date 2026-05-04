@@ -1,16 +1,13 @@
 // Wettkampf-Modus: 15 Fragen, Timer, Punkte → automatisch in Rangliste speichern
 
-const sb = window.supabase.createClient(
-  'https://aunpwdkllsxkypezgdkw.supabase.co',
-  'sb_publishable_CMHytnfreZdmS9U8jNy9qg_0-cbi5I-'
-);
-
 const PENDING_KEY = 'quiz_pending_wettkampf';
 const PENDING_MAX_ENTRIES = 20;
 const PENDING_MAX_AGE_DAYS = 30;
 
 function loadPending() {
-  const raw = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]');
+  let raw;
+  try { raw = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); }
+  catch { raw = []; }
   // Älter als 30 Tage rauswerfen
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - PENDING_MAX_AGE_DAYS);
@@ -42,15 +39,22 @@ async function flushPendingResults() {
     return;
   }
 
+  // Gamertag immer aus Session-Metadaten — nicht aus Pending-Eintrag vertrauen
+  const sessionGamertag = session.user?.user_metadata?.gamertag
+    || localStorage.getItem(STORAGE.GAMERTAG)
+    || '';
+
   const remaining = [];
   for (const entry of pending) {
     try {
       const { error } = await sb.from('wettkampf_history').insert({
         ...entry,
+        gamertag: sessionGamertag,
         user_id: session.user.id,
       });
       if (error) remaining.push(entry);
-    } catch (_) {
+    } catch (e) {
+      console.error('Pending-Flush Fehler:', e);
       remaining.push(entry);
     }
   }
@@ -58,20 +62,31 @@ async function flushPendingResults() {
 }
 
 async function saveWettkampfHistory(score, correct, wrong) {
+  let session = null;
+  try {
+    const { data: { session: s } } = await sb.auth.getSession();
+    session = s;
+  } catch (_) {}
+
+  // Gamertag aus Session-Metadaten holen, nicht aus localStorage
+  const gamertag = session?.user?.user_metadata?.gamertag
+    || localStorage.getItem(STORAGE.GAMERTAG)
+    || '';
+
   const entry = {
     played_date: getTodayString(),
     score,
     correct,
     wrong,
-    gamertag: localStorage.getItem(STORAGE.GAMERTAG) || '',
+    gamertag,
   };
 
+  if (!session) {
+    queuePendingResult(entry);
+    return 'queued';
+  }
+
   try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      queuePendingResult(entry);
-      return 'queued';
-    }
     const { error } = await sb.from('wettkampf_history').insert({
       ...entry,
       user_id: session.user.id,

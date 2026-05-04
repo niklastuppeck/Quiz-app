@@ -6,7 +6,15 @@
   <meta name="theme-color" content="#0f172a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Das große Quiz-Spiel: Üben, Wettkampf und Battle gegen Freunde. Teste dein Wissen in verschiedenen Kategorien!" />
+  <meta property="og:title" content="Quiz App" />
+  <meta property="og:description" content="Teste dein Wissen – Wettkampf, Üben und Battle gegen Freunde." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/favicon.svg" />
   <title>Quiz App</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
+  <link rel="manifest" href="/manifest.json" />
   <link rel="stylesheet" href="style.css?v=2" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8976838883771898" crossorigin="anonymous"></script>
 </head>
@@ -112,7 +120,7 @@
             autocapitalize="off"
             spellcheck="false"
           />
-          <p class="register-hint" id="register-hint">3–15 Zeichen, Buchstaben, Zahlen, Bindestrich oder Unterstrich</p>
+          <p class="register-hint" id="register-hint">3–15 Zeichen, Buchstaben (inkl. Umlaute), Zahlen, - oder _</p>
           <button class="btn-primary" id="btn-register">Loslegen</button>
         </div>
       </div>
@@ -122,7 +130,7 @@
     <section id="screen-settings" class="screen">
       <button class="btn-back btn-back-standalone" id="btn-settings-back">← Zurück</button>
       <div class="settings-card">
-        <h2 class="settings-title">Einstellungen test</h2>
+        <h2 class="settings-title">Einstellungen</h2>
 
         <div class="settings-section">
           <div class="settings-label">Gamertag</div>
@@ -141,7 +149,7 @@
               autocapitalize="off"
               spellcheck="false"
             />
-            <p class="register-hint" id="settings-gamertag-hint">3–15 Zeichen, Buchstaben, Zahlen, - oder _</p>
+            <p class="register-hint" id="settings-gamertag-hint">3–15 Zeichen, Buchstaben (inkl. Umlaute), Zahlen, - oder _</p>
             <div class="settings-edit-actions">
               <button class="btn-primary" id="btn-save-gamertag">Speichern</button>
               <button class="btn-secondary" id="btn-cancel-gamertag">Abbrechen</button>
@@ -286,14 +294,24 @@
 
   <div id="toast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#e2e8f0;padding:12px 20px;border-radius:10px;font-size:14px;z-index:9998;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.4)"></div>
 
+  <div id="offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:#b45309;color:#fff;text-align:center;font-size:13px;padding:6px 12px;z-index:9999;font-weight:500">
+    Kein Internet – gespeicherte Daten werden automatisch übertragen, sobald du wieder online bist.
+  </div>
+
   <footer>
-    <p>Quiz App · v0.7</p>
+    <p>Quiz App · v1.0 · <a href="/impressum.html" style="color:#64748b">Impressum</a> · <a href="/datenschutz.html" style="color:#64748b">Datenschutz</a></p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-client.js"></script>
   <script src="data/topics.js"></script>
   <script src="battle-invite.js"></script>
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(e => console.error('SW Fehler:', e));
+    }
+  </script>
 
 </body>
 </html>

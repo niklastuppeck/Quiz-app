@@ -1,13 +1,4 @@
 // ============================================================
-// SUPABASE
-// ============================================================
-const { createClient } = window.supabase;
-const sb = createClient(
-  'https://aunpwdkllsxkypezgdkw.supabase.co',
-  'sb_publishable_CMHytnfreZdmS9U8jNy9qg_0-cbi5I-'
-);
-
-// ============================================================
 // KONFIGURATION
 // ============================================================
 const TIMER_SECONDS   = 15;
@@ -778,12 +769,6 @@ function updateOpponentStrip(answer) {
 // ============================================================
 // SCORE-BERECHNUNG (lokal, deterministisch)
 // ============================================================
-function computeFullScores() {
-  // Wird nach jeder Frage aus currentAnswers berechnet
-  // Da wir kumulieren, tracken wir über alle Fragen
-  // → Ergebnisse kommen per Realtime, daher Snapshot am Ende per DB-Query
-}
-
 function updateScoreDisplay() {
   document.getElementById('battle-score-me').textContent  = localScores.me;
   document.getElementById('battle-score-opp').textContent = localScores.opp;

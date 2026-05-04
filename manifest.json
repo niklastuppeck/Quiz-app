@@ -1,0 +1,22 @@
+{
+  "name": "Quiz App",
+  "short_name": "Quiz App",
+  "description": "Das große Quiz-Spiel – Üben, Wettkampf und Battle gegen Freunde.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "education"],
+  "screenshots": []
+}

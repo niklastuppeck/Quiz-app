@@ -1,11 +1,6 @@
 // Üben-Modus: Thema → Modus → (Schwierigkeit) → Quiz
 
-const GAMERTAG_KEY = "quiz_gamertag";
 const SESSION_LENGTH = 200;
-const SUPABASE_URL = 'https://aunpwdkllsxkypezgdkw.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_CMHytnfreZdmS9U8jNy9qg_0-cbi5I-';
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const state = {
   currentTopic: null,
@@ -30,7 +25,7 @@ const cleanupTasks = [];
 function registerCleanup(fn) { cleanupTasks.push(fn); }
 function runCleanup() {
   while (cleanupTasks.length) {
-    try { cleanupTasks.pop()(); } catch {}
+    try { cleanupTasks.pop()(); } catch (e) { console.error('Cleanup error:', e); }
   }
 }
 
@@ -175,7 +170,7 @@ async function syncPendingData() {
           correct_answered: cur.correct_answered + delta.correct,
         }, { onConflict: 'user_id,topic_id' });
         delete userStats[topicId];
-      } catch {}
+      } catch (e) { console.error('Stat-Sync Fehler:', e); }
     }
     pendingStats[state.userId] = userStats;
     localStorage.setItem(OFFLINE_STATS_KEY, JSON.stringify(pendingStats));
@@ -200,7 +195,8 @@ async function syncPendingData() {
           .eq('topic_id', entry.topicId)
           .eq('question_hash', entry.hash);
       }
-    } catch {
+    } catch (e) {
+      console.error('Wrong-Sync Fehler:', e);
       remaining.push(entry);
     }
   }
@@ -419,7 +415,6 @@ function renderDifficultySelection() {
         const hint = document.getElementById('difficulty-hint');
       if (hint) { hint.textContent = 'Für diese Schwierigkeit gibt es noch keine Fragen.'; setTimeout(() => { hint.textContent = ''; }, 3000); }
       return;
-        return;
       }
       startRandomQuiz(diff);
     });

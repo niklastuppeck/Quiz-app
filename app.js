@@ -1,13 +1,4 @@
 // ============================================================
-// SUPABASE
-// ============================================================
-const { createClient } = window.supabase;
-const sb = createClient(
-  'https://aunpwdkllsxkypezgdkw.supabase.co',
-  'sb_publishable_CMHytnfreZdmS9U8jNy9qg_0-cbi5I-'
-);
-
-// ============================================================
 // STREAK HELPERS
 // ============================================================
 function localDateString(offsetDays = 0) {
@@ -41,7 +32,7 @@ const cleanupTasks = [];
 function registerCleanup(fn) { cleanupTasks.push(fn); }
 function runCleanup() {
   while (cleanupTasks.length) {
-    try { cleanupTasks.pop()(); } catch {}
+    try { cleanupTasks.pop()(); } catch (e) { console.error('Cleanup error:', e); }
   }
 }
 
@@ -333,8 +324,8 @@ async function onRegister() {
   const hint = document.getElementById('register-hint');
   const value = input.value.trim();
 
-  if (!/^[a-zA-Z0-9\-_]{3,15}$/.test(value)) {
-    hint.textContent = 'Ungültig. Nur Buchstaben, Zahlen, - oder _ erlaubt. 3–15 Zeichen.';
+  if (!/^[a-zA-ZäöüßÄÖÜ0-9\-_]{3,15}$/.test(value)) {
+    hint.textContent = 'Ungültig. Nur Buchstaben (inkl. Umlaute), Zahlen, - oder _ erlaubt. 3–15 Zeichen.';
     hint.classList.add('error');
     input.focus();
     return;
@@ -509,8 +500,8 @@ async function onSaveGamertag() {
   const input = document.getElementById('settings-gamertag-input');
   const value = input.value.trim();
 
-  if (!/^[a-zA-Z0-9\-_]{3,15}$/.test(value)) {
-    setHint('settings-gamertag-hint', 'Ungültig. Nur Buchstaben, Zahlen, - oder _ erlaubt. 3–15 Zeichen.', true);
+  if (!/^[a-zA-ZäöüßÄÖÜ0-9\-_]{3,15}$/.test(value)) {
+    setHint('settings-gamertag-hint', 'Ungültig. Nur Buchstaben (inkl. Umlaute), Zahlen, - oder _ erlaubt. 3–15 Zeichen.', true);
     input.focus();
     return;
   }
@@ -621,8 +612,8 @@ async function loadAdminReports(container) {
           <p class="admin-report-meta">Thema: ${escapeHtml(g.topic_id)}</p>
           ${commentsHtml}
           <div class="admin-report-actions">
-            <button class="btn-friend-accept" data-ids='${JSON.stringify(g.ids)}' data-action="resolved">✓ Erledigt</button>
-            <button class="btn-friend-reject" data-ids='${JSON.stringify(g.ids)}' data-action="dismissed">✗ Verwerfen</button>
+            <button class="btn-friend-accept" data-ids="${escapeHtml(JSON.stringify(g.ids))}" data-action="resolved">✓ Erledigt</button>
+            <button class="btn-friend-reject" data-ids="${escapeHtml(JSON.stringify(g.ids))}" data-action="dismissed">✗ Verwerfen</button>
           </div>
         </div>
       `;
@@ -632,7 +623,8 @@ async function loadAdminReports(container) {
     container.innerHTML = html;
     container.querySelectorAll('[data-action]').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const ids = JSON.parse(btn.dataset.ids);
+        let ids;
+        try { ids = JSON.parse(btn.dataset.ids); } catch { return; }
         const action = btn.dataset.action;
         const { error: uerr } = await sb
           .from('question_reports')
@@ -1266,7 +1258,16 @@ async function loadHistory(container) {
 // ============================================================
 // INIT
 // ============================================================
+function updateOfflineBanner() {
+  const banner = document.getElementById('offline-banner');
+  if (!banner) return;
+  banner.style.display = navigator.onLine ? 'none' : '';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  updateOfflineBanner();
+  window.addEventListener('online', updateOfflineBanner);
+  window.addEventListener('offline', updateOfflineBanner);
 
   // Login
   document.getElementById('btn-login').addEventListener('click', onLogin);

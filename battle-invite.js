@@ -1,10 +1,6 @@
 // Eigenständiges Battle-Invite-Modul – auf jeder Seite einbindbar
 (function () {
-  const SUPABASE_URL = 'https://aunpwdkllsxkypezgdkw.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_CMHytnfreZdmS9U8jNy9qg_0-cbi5I-';
-
-  const { createClient } = window.supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const sb = window.sb;
 
   let currentInvite = null;
   let inviteChannel = null;

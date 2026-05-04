@@ -1,10 +1,8 @@
 // Rangliste: alle Spieler mit kumulierten Gesamtpunkten — aus Supabase
 
-const { createClient } = window.supabase;
-const sb = createClient(
-  'https://aunpwdkllsxkypezgdkw.supabase.co',
-  'sb_publishable_CMHytnfreZdmS9U8jNy9qg_0-cbi5I-'
-);
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 function getCurrentMonthStart() {
   const d = new Date();
@@ -23,9 +21,10 @@ async function renderLeaderboard() {
   try {
     const { data, error } = await sb
       .from('wettkampf_history')
-      .select('gamertag, score, correct, wrong')
+      .select('user_id, gamertag, score, correct, wrong')
       .not('gamertag', 'is', null)
-      .gte('played_date', since);
+      .gte('played_date', since)
+      .order('played_date', { ascending: true });
 
     if (error) throw new Error(error.message);
 
@@ -35,16 +34,17 @@ async function renderLeaderboard() {
       return;
     }
 
-    // Kumulieren pro Spieler
+    // Kumulieren pro Spieler — nach user_id gruppieren, neuester Gamertag gewinnt
     const map = {};
     data.forEach(entry => {
-      const name = entry.gamertag;
-      if (!name) return;
-      if (!map[name]) map[name] = { gamertag: name, score: 0, correct: 0, wrong: 0, games: 0 };
-      map[name].score   += entry.score;
-      map[name].correct += entry.correct;
-      map[name].wrong   += entry.wrong;
-      map[name].games++;
+      const key = entry.user_id || entry.gamertag;
+      if (!key) return;
+      if (!map[key]) map[key] = { gamertag: entry.gamertag, score: 0, correct: 0, wrong: 0, games: 0 };
+      map[key].gamertag = entry.gamertag || map[key].gamertag; // neuesten Gamertag übernehmen
+      map[key].score   += entry.score;
+      map[key].correct += entry.correct;
+      map[key].wrong   += entry.wrong;
+      map[key].games++;
     });
 
     const players = Object.values(map).sort((a, b) => b.score - a.score);
@@ -58,7 +58,7 @@ async function renderLeaderboard() {
       row.innerHTML = `
         <div class="lb-rank">${rankSymbols[i] || `#${i + 1}`}</div>
         <div class="lb-info">
-          <div class="lb-name">${player.gamertag}</div>
+          <div class="lb-name">${escapeHtml(player.gamertag)}</div>
           <div class="lb-games">${player.games} Spiel${player.games !== 1 ? 'e' : ''}</div>
         </div>
         <div class="lb-score">${scorePrefix}${player.score}</div>
