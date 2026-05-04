@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Quizbattle – Quiz App</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Quiz App</h1>
+      <div class="header-right">
+        <button class="btn-settings" id="btn-battle-mute" aria-label="Ton umschalten">🔊</button>
+      </div>
+    </div>
+    <p class="subtitle" id="battle-subtitle">Quizbattle</p>
+  </header>
+
+  <main>
+
+    <!-- Screen: Laden -->
+    <section id="screen-loading" class="screen active">
+      <div class="battle-loading-card">
+        <div class="battle-loading-spinner"></div>
+        <p class="battle-loading-text">Lade Battle…</p>
+      </div>
+    </section>
+
+    <!-- Screen: Konfiguration (nur Host) -->
+    <section id="screen-config" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-config-back">← Zurück</button>
+      <div class="battle-setup-card">
+        <div class="battle-setup-icon">⚔️</div>
+        <h2 class="battle-setup-title">Battle einrichten</h2>
+
+        <div class="battle-setup-section" id="config-section-count">
+          <label class="battle-setup-label">Anzahl Fragen</label>
+          <div class="battle-diff-row">
+            <button class="battle-diff-btn battle-count-btn" data-count="5">5</button>
+            <button class="battle-diff-btn battle-count-btn" data-count="10">10</button>
+            <button class="battle-diff-btn battle-count-btn" data-count="15">15</button>
+          </div>
+        </div>
+
+        <div class="battle-setup-section" id="config-section-mode">
+          <label class="battle-setup-label">Wertungsmodus</label>
+          <div class="battle-mode-row">
+            <button class="battle-mode-btn" data-mode="fastest">
+              <span class="battle-mode-icon">⚡</span>
+              <span class="battle-mode-name">Schnellster gewinnt</span>
+              <span class="battle-mode-desc">Nur der Schnellste bekommt den Punkt</span>
+            </button>
+            <button class="battle-mode-btn" data-mode="both">
+              <span class="battle-mode-icon">🤝</span>
+              <span class="battle-mode-name">Jeder für sich</span>
+              <span class="battle-mode-desc">Jede richtige Antwort zählt</span>
+            </button>
+          </div>
+        </div>
+
+        <p class="config-hint" id="config-hint"></p>
+        <button class="btn-primary" id="btn-config-next">Weiter →</button>
+      </div>
+    </section>
+
+    <!-- Screen: Setup (nur Host) -->
+    <section id="screen-setup" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-setup-back">← Zurück</button>
+      <div class="battle-setup-card">
+        <div class="battle-setup-icon">⚔️</div>
+        <h2 class="battle-setup-title">Quizbattle</h2>
+        <p class="battle-setup-subtitle">Wähle Thema und Schwierigkeit für die Runde.</p>
+
+        <div class="battle-setup-section">
+          <label class="battle-setup-label">Thema</label>
+          <div class="battle-topic-grid" id="battle-topic-grid">
+            <!-- dynamisch befüllt -->
+          </div>
+        </div>
+
+        <div class="battle-setup-section">
+          <label class="battle-setup-label">Schwierigkeit</label>
+          <div class="battle-diff-row">
+            <button class="battle-diff-btn" data-diff="leicht">😊 Leicht</button>
+            <button class="battle-diff-btn" data-diff="mittel">⚡ Mittel</button>
+            <button class="battle-diff-btn" data-diff="schwer">🔥 Schwer</button>
+            <button class="battle-diff-btn" data-diff="mix">🎲 Mix</button>
+          </div>
+        </div>
+
+        <p class="battle-setup-info">10 Fragen · 15 Sekunden pro Frage · Wer schneller richtig liegt, gewinnt den Punkt</p>
+
+        <button class="btn-primary" id="btn-send-challenge" disabled>Herausforderung senden ⚔️</button>
+        <p class="auth-hint error" id="setup-hint" style="display:none"></p>
+      </div>
+    </section>
+
+    <!-- Screen: Lobby -->
+    <section id="screen-lobby" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-lobby-back">← Abbrechen</button>
+      <div class="battle-lobby-card">
+        <div class="battle-lobby-vs">
+          <div class="battle-lobby-player" id="lobby-host-side">
+            <div class="battle-lobby-avatar" id="lobby-host-avatar">?</div>
+            <div class="battle-lobby-name" id="lobby-host-name">–</div>
+            <div class="battle-lobby-ready" id="lobby-host-ready">⏳ Wartet</div>
+          </div>
+          <div class="battle-lobby-vs-badge">VS</div>
+          <div class="battle-lobby-player" id="lobby-guest-side">
+            <div class="battle-lobby-avatar" id="lobby-guest-avatar">?</div>
+            <div class="battle-lobby-name" id="lobby-guest-name">–</div>
+            <div class="battle-lobby-ready" id="lobby-guest-ready">⏳ Wartet</div>
+          </div>
+        </div>
+
+        <div class="battle-lobby-info">
+          <span class="battle-lobby-tag" id="lobby-topic-tag">–</span>
+          <span class="battle-lobby-tag" id="lobby-diff-tag">–</span>
+        </div>
+
+        <p class="battle-lobby-hint" id="lobby-hint">Warte auf den Gegner…</p>
+
+        <button class="btn-primary" id="btn-ready" style="display:none">✔ Ich bin bereit!</button>
+        <button class="btn-primary battle-start-btn" id="btn-start-game" style="display:none">▶ Spiel starten</button>
+      </div>
+    </section>
+
+    <!-- Screen: Quiz -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-header">
+        <div class="wettkampf-bar">
+          <div class="wk-pill">
+            <span class="wk-label">Frage</span>
+            <span id="battle-counter">1 / 10</span>
+          </div>
+          <div class="wk-pill battle-score-pill" id="battle-score-display">
+            <span id="battle-score-me">0</span>
+            <span class="battle-score-sep">:</span>
+            <span id="battle-score-opp">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timer-bar" id="battle-timer-bar">
+        <div class="timer-fill" id="battle-timer-fill"></div>
+        <div class="timer-text" id="battle-timer-text">15</div>
+      </div>
+
+      <!-- Gegner-Status -->
+      <div class="battle-opponent-strip" id="battle-opponent-strip">
+        <span class="battle-opp-name" id="battle-opp-name">Gegner</span>
+        <span class="battle-opp-status" id="battle-opp-status">überlegt…</span>
+      </div>
+
+      <div class="question-card">
+        <p class="question-text" id="battle-question-text"></p>
+      </div>
+
+      <div class="answers-list" id="battle-answers-list"></div>
+
+      <!-- Zwischen-Fragen Overlay -->
+      <div id="battle-round-overlay" class="battle-round-overlay" style="display:none">
+        <div class="battle-round-result" id="battle-round-result"></div>
+        <div class="battle-round-countdown" id="battle-round-countdown"></div>
+      </div>
+    </section>
+
+    <!-- Screen: Ergebnis -->
+    <section id="screen-result" class="screen">
+      <div class="result-card">
+        <div class="result-emoji" id="battle-result-emoji">⚔️</div>
+        <h2 class="result-title" id="battle-result-title">Battle beendet!</h2>
+        <p class="result-subtitle" id="battle-result-subtitle"></p>
+
+        <div class="battle-result-score-big">
+          <div class="battle-result-player" id="result-me-card">
+            <div class="battle-result-badge" id="result-me-badge"></div>
+            <div class="battle-result-name" id="result-me-name">Du</div>
+            <div class="battle-result-points" id="result-me-score">0</div>
+          </div>
+          <div class="battle-result-vs">:</div>
+          <div class="battle-result-player" id="result-opp-card">
+            <div class="battle-result-badge" id="result-opp-badge"></div>
+            <div class="battle-result-name" id="result-opp-name">Gegner</div>
+            <div class="battle-result-points" id="result-opp-score">0</div>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button class="btn-primary" id="btn-rematch">🔁 Nochmal</button>
+          <button class="btn-secondary" id="btn-result-home">Zur Startseite</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Quiz App · Quizbattle</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../data/topics.js"></script>
+  <script src="../data/questions.js"></script>
+  <script src="../sounds.js"></script>
+  <script src="battle.js"></script>
+</body>
+</html>

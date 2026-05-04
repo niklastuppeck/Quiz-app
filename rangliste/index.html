@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Rangliste – Quiz App</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <header>
+    <h1>Quiz App</h1>
+    <p class="subtitle">Rangliste</p>
+  </header>
+
+  <main>
+    <section id="screen-leaderboard" class="screen active">
+      <button class="btn-back btn-back-standalone" id="btn-back">← Zurück</button>
+
+      <div class="leaderboard-header">
+        <h2>Rangliste</h2>
+        <p class="leaderboard-subtitle" id="leaderboard-subtitle">Letzte 30 Tage · nach Punkten sortiert</p>
+      </div>
+
+      <div class="leaderboard-list" id="leaderboard-list"></div>
+
+      <p class="leaderboard-empty" id="leaderboard-empty" hidden>
+        Noch keine Wettkämpfe gespielt. Starte deinen ersten!
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Quiz App · v0.6</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="rangliste.js"></script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+
+[allgemein / leicht]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 49 Fragen erhalten
+  → 198 Fragen gesamt für allgemein/leicht
+
+[allgemein / mittel]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 49 Fragen erhalten
+  Batch 4/4 ... 49 Fragen erhalten
+  → 197 Fragen gesamt für allgemein/mittel
+
+[allgemein / schwer]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 49 Fragen erhalten
+  → 198 Fragen gesamt für allgemein/schwer
+
+[geographie / leicht]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 50 Fragen erhalten
+  Batch 3/4 ... 49 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 199 Fragen gesamt für geographie/leicht
+
+[geographie / mittel]
+  Batch 1/4 ... 49 Fragen erhalten
+  Batch 2/4 ... 50 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 199 Fragen gesamt für geographie/mittel
+
+[geographie / schwer]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 199 Fragen gesamt für geographie/schwer
+
+[politik / leicht]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 50 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 200 Fragen gesamt für politik/leicht
+
+[politik / mittel]
+  Batch 1/4 ... 49 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 49 Fragen erhalten
+  → 197 Fragen gesamt für politik/mittel
+
+[politik / schwer]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 199 Fragen gesamt für politik/schwer
+
+[geschichte / leicht]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 49 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 198 Fragen gesamt für geschichte/leicht
+
+[geschichte / mittel]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 49 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 198 Fragen gesamt für geschichte/mittel
+
+[geschichte / schwer]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 50 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 49 Fragen erhalten
+  → 199 Fragen gesamt für geschichte/schwer
+
+[wissenschaft / leicht]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 50 Fragen erhalten
+  Batch 3/4 ... 49 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 199 Fragen gesamt für wissenschaft/leicht
+
+[wissenschaft / mittel]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 49 Fragen erhalten
+  Batch 3/4 ... 49 Fragen erhalten
+  Batch 4/4 ... 48 Fragen erhalten
+  → 196 Fragen gesamt für wissenschaft/mittel
+
+[wissenschaft / schwer]
+  Batch 1/4 ... 48 Fragen erhalten
+  Batch 2/4 ... 50 Fragen erhalten
+  Batch 3/4 ... 48 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 196 Fragen gesamt für wissenschaft/schwer
+
+[sport / leicht]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 48 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 50 Fragen erhalten
+  → 198 Fragen gesamt für sport/leicht
+
+[sport / mittel]
+  Batch 1/4 ... 50 Fragen erhalten
+  Batch 2/4 ... 48 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 49 Fragen erhalten
+  → 197 Fragen gesamt für sport/mittel
+
+[sport / schwer]
+  Batch 1/4 ... 48 Fragen erhalten
+  Batch 2/4 ... 50 Fragen erhalten
+  Batch 3/4 ... 50 Fragen erhalten
+  Batch 4/4 ... 46 Fragen erhalten
+  → 194 Fragen gesamt für sport/schwer
+
+Schreibe /Users/niklastuppeck/quiz-app/data/questions.js ...
+
+=== Ergebnis ===
+  allgemein    leicht: ⚠️  nur 198
+  allgemein    mittel: ⚠️  nur 197
+  allgemein    schwer: ⚠️  nur 198
+  geographie   leicht: ⚠️  nur 199
+  geographie   mittel: ⚠️  nur 199
+  geographie   schwer: ⚠️  nur 199
+  politik      leicht: ✅
+  politik      mittel: ⚠️  nur 197
+  politik      schwer: ⚠️  nur 199
+  geschichte   leicht: ⚠️  nur 198
+  geschichte   mittel: ⚠️  nur 198
+  geschichte   schwer: ⚠️  nur 199
+  wissenschaft leicht: ⚠️  nur 199
+  wissenschaft mittel: ⚠️  nur 196
+  wissenschaft schwer: ⚠️  nur 196
+  sport        leicht: ⚠️  nur 198
+  sport        mittel: ⚠️  nur 197
+  sport        schwer: ⚠️  nur 194
+
+Fertig! Starte die App neu um die neuen Fragen zu laden.

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Üben – Quiz App</title>
+  <link rel="stylesheet" href="../style.css" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8976838883771898" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header>
+    <h1>Quiz App</h1>
+    <p class="subtitle" id="subtitle">Themengebiet wählen</p>
+  </header>
+
+  <main>
+    <!-- Screen: Themen-Auswahl -->
+    <section id="screen-topics" class="screen active">
+      <button class="btn-back btn-back-standalone" id="btn-back-topics">← Zurück</button>
+      <div class="topics-grid" id="topics-grid"></div>
+    </section>
+
+    <!-- Screen: Modus-Auswahl -->
+    <section id="screen-mode" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-back-mode">← Zurück</button>
+      <p id="mode-hint" style="font-size:13px;color:#f59e0b;text-align:center;padding:4px 0;min-height:20px"></p>
+      <div class="topics-grid">
+        <button class="topic-card" id="btn-mode-random" style="--card-color: #6366f1">
+          <span class="topic-icon">🎲</span>
+          <div class="topic-info">
+            <div class="topic-name">Zufällig üben</div>
+            <div class="topic-description">Schwierigkeit wählen und loslegen</div>
+          </div>
+          <span class="topic-arrow">›</span>
+        </button>
+        <button class="topic-card" id="btn-mode-repeat" style="--card-color: #f59e0b">
+          <span class="topic-icon">🔁</span>
+          <div class="topic-info">
+            <div class="topic-name">Falsche Fragen wiederholen</div>
+            <div class="topic-description" id="wrong-count-label">Lade...</div>
+          </div>
+          <span class="topic-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen: Schwierigkeit -->
+    <section id="screen-difficulty" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-back-difficulty">← Zurück</button>
+      <div class="topics-grid" id="difficulty-grid"></div>
+      <p id="difficulty-hint" style="font-size:13px;color:#f59e0b;text-align:center;padding:8px 0;min-height:24px"></p>
+    </section>
+
+    <!-- Screen: Quiz -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-header">
+        <button class="btn-back" id="btn-back-quiz">← Zurück</button>
+        <button class="btn-mute" id="btn-mute" title="Sound an/aus">🔊</button>
+      </div>
+
+      <div class="quiz-stats-strip">
+        <div class="stat stat-correct">
+          <span class="stat-value" id="stat-correct">0</span>
+          <span class="stat-label">Richtig</span>
+        </div>
+        <div class="quiz-stats-sep"></div>
+        <div class="stat stat-wrong">
+          <span class="stat-value" id="stat-wrong">0</span>
+          <span class="stat-label">Falsch</span>
+        </div>
+        <div class="quiz-stats-sep"></div>
+        <div class="stat stat-streak">
+          <span class="stat-streak-icon">🔥</span>
+          <span class="stat-value" id="stat-streak">0</span>
+          <span class="stat-label">Serie</span>
+          <span class="streak-toast" id="streak-toast"></span>
+        </div>
+      </div>
+
+      <p class="repeat-progress" id="repeat-progress"></p>
+
+      <div class="question-card">
+        <p class="question-text" id="question-text"></p>
+      </div>
+
+      <div class="answers-list" id="answers-list"></div>
+
+      <button class="next-btn" id="next-btn" disabled>Nächste Frage</button>
+
+      <button class="btn-report" id="btn-report" aria-label="Frage melden">🚩 Frage melden</button>
+    </section>
+
+    <!-- Screen: Session-Ergebnis -->
+    <section id="screen-session-result" class="screen">
+      <div class="result-card">
+        <div class="result-emoji" id="session-result-emoji">🎉</div>
+        <h2 class="result-title" id="session-result-title">Session abgeschlossen!</h2>
+        <p class="result-subtitle" id="session-result-subtitle"></p>
+
+        <div class="wkr-stats">
+          <div class="wkr-stat wkr-stat-correct">
+            <div class="wkr-stat-icon">✓</div>
+            <div class="wkr-stat-value" id="session-result-correct">0</div>
+            <div class="wkr-stat-label">Richtig</div>
+          </div>
+          <div class="wkr-stat wkr-stat-wrong">
+            <div class="wkr-stat-icon">✗</div>
+            <div class="wkr-stat-value" id="session-result-wrong">0</div>
+            <div class="wkr-stat-label">Falsch</div>
+          </div>
+          <div class="wkr-stat wkr-stat-final">
+            <div class="wkr-stat-icon">%</div>
+            <div class="wkr-stat-value" id="session-result-percent">0%</div>
+            <div class="wkr-stat-label">Quote</div>
+          </div>
+        </div>
+
+        <div id="other-topics-section" style="display:none;margin:8px 0 4px;text-align:center"></div>
+
+        <div class="result-actions">
+          <button class="btn-primary" id="btn-play-again">Nochmal spielen</button>
+          <button class="btn-secondary" id="btn-session-to-home">Zurück zur Auswahl</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Frage melden -->
+  <div id="report-modal" class="modal-overlay" style="display:none">
+    <div class="modal-card">
+      <h3 class="modal-title">🚩 Frage melden</h3>
+      <p class="modal-subtitle">Was stimmt nicht mit der Frage?</p>
+      <div class="report-reasons">
+        <button class="report-reason" data-reason="grammar">📝 Grammatik</button>
+        <button class="report-reason" data-reason="wrong_answer">❌ Falsche Antwort</button>
+        <button class="report-reason" data-reason="unclear">❓ Unklar formuliert</button>
+        <button class="report-reason" data-reason="other">… Sonstiges</button>
+      </div>
+      <textarea id="report-comment" class="text-input" placeholder="Optional: Kommentar" rows="3" maxlength="500"></textarea>
+      <p class="auth-hint" id="report-hint"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btn-report-cancel">Abbrechen</button>
+        <button class="btn-primary" id="btn-report-send" disabled>Senden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay: Interstitial -->
+  <div id="ad-interstitial-overlay" class="ad-overlay">
+    <div class="ad-card">
+      <span class="ad-tag">Werbung</span>
+      <div class="ad-placeholder">Anzeige wird geladen…</div>
+      <button class="ad-action-btn" disabled>Schließen in 5s</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>Quiz App · v0.7</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../data/topics.js"></script>
+  <script src="../data/questions.js"></script>
+  <script src="../sounds.js"></script>
+  <script src="../report.js"></script>
+  <script src="../battle-invite.js"></script>
+  <script src="../ads.js"></script>
+  <script src="ueben.js"></script>
+</body>
+</html>

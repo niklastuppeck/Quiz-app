@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Quiz App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Quiz App</h1>
+      <div class="header-right">
+        <span id="streak-pill" class="streak-pill" style="display:none">🔥 <span id="streak-pill-count"></span></span>
+        <button class="btn-settings" id="btn-settings" aria-label="Einstellungen" style="display:none">⚙️</button>
+      </div>
+    </div>
+    <p class="subtitle" id="subtitle"></p>
+  </header>
+
+  <main>
+
+    <!-- Screen: Login -->
+    <section id="screen-auth" class="screen">
+      <div class="auth-card">
+        <div class="auth-emoji">🔐</div>
+        <h2 class="auth-title">Anmelden</h2>
+        <div class="auth-form">
+          <input type="email" id="login-email" class="text-input" placeholder="E-Mail" autocomplete="email" inputmode="email" />
+          <input type="password" id="login-password" class="text-input" placeholder="Passwort" autocomplete="current-password" />
+          <p class="auth-hint" id="login-hint"></p>
+          <button class="btn-primary" id="btn-login">Anmelden</button>
+          <button class="btn-secondary" id="btn-go-register">Neu registrieren</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Registrierung – Schritt 1: E-Mail -->
+    <section id="screen-reg-email" class="screen">
+      <div class="auth-card">
+        <div class="auth-emoji">✉️</div>
+        <h2 class="auth-title">Registrieren</h2>
+        <p class="auth-subtitle">Gib deine E-Mail ein. Wir schicken dir einen 6-stelligen Code.</p>
+        <div class="auth-form">
+          <input type="email" id="reg-email" class="text-input" placeholder="E-Mail" autocomplete="email" inputmode="email" />
+          <p class="auth-hint" id="reg-email-hint"></p>
+          <button class="btn-primary" id="btn-send-code">Code senden</button>
+          <button class="btn-secondary" id="btn-go-login">Bereits registriert? Anmelden</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Registrierung – Schritt 2: Code -->
+    <section id="screen-reg-code" class="screen">
+      <div class="auth-card">
+        <div class="auth-emoji">🔢</div>
+        <h2 class="auth-title">Code eingeben</h2>
+        <p class="auth-subtitle" id="reg-code-subtitle">Wir haben einen Code an deine E-Mail geschickt.</p>
+        <div class="auth-form">
+          <input
+            type="text"
+            id="reg-code"
+            class="text-input code-input"
+            placeholder="00000000"
+            maxlength="8"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="one-time-code"
+          />
+          <p class="auth-hint" id="reg-code-hint"></p>
+          <button class="btn-primary" id="btn-verify-code">Bestätigen</button>
+          <button class="btn-secondary" id="btn-resend-code">Code erneut senden</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Registrierung – Schritt 3: Passwort -->
+    <section id="screen-reg-password" class="screen">
+      <div class="auth-card">
+        <div class="auth-emoji">🔒</div>
+        <h2 class="auth-title">Passwort festlegen</h2>
+        <p class="auth-subtitle">Mindestens 8 Zeichen.</p>
+        <div class="auth-form">
+          <input type="password" id="reg-password" class="text-input" placeholder="Passwort" autocomplete="new-password" />
+          <input type="password" id="reg-password2" class="text-input" placeholder="Passwort wiederholen" autocomplete="new-password" />
+          <p class="auth-hint" id="reg-password-hint"></p>
+          <button class="btn-primary" id="btn-set-password">Weiter</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Registrierung – Schritt 4: Gamertag -->
+    <section id="screen-register" class="screen">
+      <div class="register-card">
+        <div class="register-emoji">👋</div>
+        <h2 class="register-title">Fast geschafft!</h2>
+        <p class="register-subtitle">Wähle deinen Gamertag — er wird in der Rangliste angezeigt.</p>
+        <div class="register-form">
+          <input
+            type="text"
+            id="gamertag-input"
+            class="text-input"
+            placeholder="Dein Gamertag"
+            maxlength="15"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+          <p class="register-hint" id="register-hint">3–15 Zeichen, Buchstaben, Zahlen, Bindestrich oder Unterstrich</p>
+          <button class="btn-primary" id="btn-register">Loslegen</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Einstellungen -->
+    <section id="screen-settings" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-settings-back">← Zurück</button>
+      <div class="settings-card">
+        <h2 class="settings-title">Einstellungen</h2>
+
+        <div class="settings-section">
+          <div class="settings-label">Gamertag</div>
+          <div class="settings-row">
+            <span class="settings-value" id="settings-gamertag-display"></span>
+            <button class="btn-edit-tag" id="btn-edit-gamertag">Ändern</button>
+          </div>
+          <div class="settings-edit-form" id="gamertag-edit-form" style="display:none">
+            <input
+              type="text"
+              id="settings-gamertag-input"
+              class="text-input"
+              placeholder="Neuer Gamertag"
+              maxlength="15"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+            />
+            <p class="register-hint" id="settings-gamertag-hint">3–15 Zeichen, Buchstaben, Zahlen, - oder _</p>
+            <div class="settings-edit-actions">
+              <button class="btn-primary" id="btn-save-gamertag">Speichern</button>
+              <button class="btn-secondary" id="btn-cancel-gamertag">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Platzhalter für weitere Einstellungen -->
+
+        <div class="settings-section settings-section-logout">
+          <button class="btn-logout" id="btn-logout">Abmelden</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen: Home -->
+    <section id="screen-home" class="screen">
+      <div class="home-greeting">
+        <p class="greeting-hello">Hallo,</p>
+        <p class="greeting-name" id="greeting-name">Spieler</p>
+      </div>
+
+      <div class="mode-grid">
+        <button class="mode-card mode-practice" id="btn-ueben">
+          <span class="mode-icon">📚</span>
+          <div class="mode-info">
+            <div class="mode-name">Üben</div>
+            <div class="mode-description">Endlos-Modus ohne Zeitdruck</div>
+          </div>
+          <span class="topic-arrow">›</span>
+        </button>
+
+        <button class="mode-card mode-wettkampf" id="btn-wettkampf">
+          <span class="mode-icon">🏆</span>
+          <div class="mode-info">
+            <div class="mode-name">Wettkampf</div>
+            <div class="mode-description" id="wettkampf-status">15 Fragen · 1× pro Tag</div>
+          </div>
+          <span class="topic-arrow">›</span>
+        </button>
+
+        <button class="mode-card mode-leaderboard" id="btn-rangliste">
+          <span class="mode-icon">🌐</span>
+          <div class="mode-info">
+            <div class="mode-name">Rangliste</div>
+            <div class="mode-description">globale Rangliste</div>
+          </div>
+          <span class="topic-arrow">›</span>
+        </button>
+
+        <button class="mode-card mode-stats" id="btn-stats">
+          <span class="mode-icon">📊</span>
+          <div class="mode-info">
+            <div class="mode-name">Statistiken</div>
+            <div class="mode-description">deine Lernfortschritte</div>
+          </div>
+          <span class="topic-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen: Statistiken -->
+    <section id="screen-stats" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-stats-back">← Zurück</button>
+      <div id="stats-content">
+        <p class="loading-hint">Lade Statistiken…</p>
+      </div>
+    </section>
+
+    <!-- Screen: Wettkampf Verlauf -->
+    <section id="screen-history" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-history-back">← Zurück</button>
+      <div id="history-content">
+        <p class="loading-hint">Lade Verlauf…</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Quiz App · v0.7</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="data/topics.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
