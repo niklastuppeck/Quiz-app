@@ -498,6 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
     stopTimer();
     SoundSystem.stopBgMusic();
     showScreen("screen-intro");
+    updateIntroStatus();
   });
 
   document.getElementById("btn-mute").addEventListener("click", () => {
@@ -513,9 +514,7 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   document.getElementById("btn-to-rangliste").addEventListener("click", () => {
-    Ads.maybeInterstitial(() => {
-      window.location.href = "../rangliste/index.html";
-    });
+    window.location.href = "../rangliste/index.html";
   });
 
   document.getElementById("btn-rewarded-play").addEventListener("click", () => {
