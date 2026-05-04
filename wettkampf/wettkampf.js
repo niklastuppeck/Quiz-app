@@ -494,6 +494,10 @@ document.addEventListener("DOMContentLoaded", () => {
     startWettkampf();
   });
 
+  document.getElementById("btn-intro-rangliste").addEventListener("click", () => {
+    window.location.href = "../rangliste/index.html";
+  });
+
   document.getElementById("btn-back-quiz").addEventListener("click", () => {
     stopTimer();
     SoundSystem.stopBgMusic();
