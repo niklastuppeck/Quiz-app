@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quiz-app-v1';
+const CACHE_NAME = 'quiz-app-v2';
 
 // HTML immer frisch vom Netzwerk holen, alles andere cachen
 self.addEventListener('fetch', event => {
