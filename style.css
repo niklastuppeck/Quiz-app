@@ -2554,3 +2554,82 @@ footer {
   border-color: var(--border);
   color: var(--text-muted);
 }
+
+/* ========== HOVER EFFECTS (nur Maus/Trackpad) ========== */
+@media (hover: hover) {
+  .btn-primary:not(:disabled):hover {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
+  }
+  .btn-secondary:not(:disabled):hover {
+    background: #2d3f55;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .next-btn:not(:disabled):hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+  .btn-back:hover {
+    background: var(--bg-elevated);
+    color: var(--text);
+  }
+  .btn-mute:hover {
+    background: var(--bg-elevated);
+    color: var(--text);
+  }
+  .btn-settings:hover {
+    background: var(--bg-elevated);
+  }
+  .btn-edit-tag:hover {
+    background: rgba(99, 102, 241, 0.18);
+  }
+  .btn-logout:hover {
+    background: rgba(239, 68, 68, 0.14);
+  }
+  .secondary-btn:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .mode-hero:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.18);
+  }
+  .mode-duo:hover {
+    transform: translateY(-2px);
+  }
+  .wk-rule-card[id]:hover {
+    border-color: var(--accent);
+    background: rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
+  }
+  .btn-friend-accept:hover { filter: brightness(1.12); }
+  .btn-friend-reject:hover,
+  .btn-friend-cancel:hover,
+  .btn-friend-remove:hover { background: rgba(239, 68, 68, 0.25); }
+  .btn-battle-challenge:hover { filter: brightness(1.12); }
+  .battle-inline-topic-btn:hover,
+  .battle-inline-diff-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  .battle-topic-btn:not(.selected):hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  .battle-diff-btn:not(.selected):hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  .battle-mode-btn:not(.selected):hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.4);
+  }
+  .bit-btn-accept:hover { filter: brightness(1.1); }
+  .bit-btn-decline:hover { background: rgba(255, 255, 255, 0.1); }
+  .btn-battle-send:not(:disabled):hover { filter: brightness(1.1); }
+  .report-reason:not(.selected):hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .btn-text:hover { color: var(--text); }
+}
