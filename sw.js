@@ -1,4 +1,6 @@
-const CACHE_NAME = 'quiz-app-v3';
+const CACHE_NAME = 'quiz-app-v4';
+
+self.addEventListener('install', () => self.skipWaiting());
 
 // Alles immer frisch vom Netzwerk — Cache nur als Offline-Fallback
 self.addEventListener('fetch', event => {
