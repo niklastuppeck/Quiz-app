@@ -253,6 +253,7 @@ function showScreen(id) {
 // ========== QUIZ ==========
 function startWettkampf() {
   Ads.startTracking();
+  incrementPlayCount();
 
   const schwerPool = [];
   Object.values(QUESTIONS).forEach((qs) => {
@@ -422,7 +423,6 @@ function finishWettkampf() {
   // localStorage.setItem(STORAGE.LAST_PLAY_DATE, getTodayString());
 
   const newStreak = updateStreak();
-  incrementPlayCount();
   showResult({ gamertag: localStorage.getItem(STORAGE.GAMERTAG), score: state.score, correct: state.correct, wrong: state.wrong }, newStreak);
   saveWettkampfHistory(state.score, state.correct, state.wrong).then(status => {
     const el = document.getElementById('result-pending-hint');
