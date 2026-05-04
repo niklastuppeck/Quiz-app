@@ -1,32 +1,21 @@
-const CACHE_NAME = 'quiz-app-v2';
+const CACHE_NAME = 'quiz-app-v3';
 
-// HTML immer frisch vom Netzwerk holen, alles andere cachen
+// Alles immer frisch vom Netzwerk — Cache nur als Offline-Fallback
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
   // Externe URLs (Supabase, CDN, Ads) nicht anfassen
   if (url.origin !== self.location.origin) return;
 
-  // HTML: immer vom Netzwerk, kein Cache
-  if (event.request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
-    return;
-  }
-
-  // Alles andere: Cache first, dann Netzwerk
+  // Network-first für alles: immer aktuelle Version, Cache als Fallback
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      const networkFetch = fetch(event.request).then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      });
-      return cached || networkFetch;
-    })
+    fetch(event.request).then(response => {
+      if (response.ok) {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+      }
+      return response;
+    }).catch(() => caches.match(event.request))
   );
 });
 
