@@ -143,20 +143,27 @@ function updateIntroStatus() {
   const count = getTodayPlayCount();
   const statusEl = document.getElementById('wk-play-status');
   const startBtn = document.getElementById('btn-start-wettkampf');
+  const rewardedIntroBtn = document.getElementById('btn-rewarded-play-intro');
   if (!statusEl || !startBtn) return;
 
   if (count === 0) {
     statusEl.textContent = '';
     startBtn.disabled = false;
     startBtn.textContent = 'Wettkampf starten';
+    if (rewardedIntroBtn) rewardedIntroBtn.style.display = 'none';
   } else if (count < WK_MAX_PER_DAY) {
     const remaining = WK_MAX_PER_DAY - count;
     statusEl.innerHTML = `Heute bereits gespielt · <strong>${remaining}× via Werbung</strong> noch möglich`;
     startBtn.disabled = true;
     startBtn.textContent = 'Bereits gespielt';
+    if (rewardedIntroBtn) {
+      rewardedIntroBtn.style.display = '';
+      rewardedIntroBtn.textContent = `🎬 Nochmal spielen · noch ${remaining}× heute möglich`;
+    }
   } else {
     startBtn.disabled = true;
     startBtn.textContent = 'Heute nicht mehr möglich';
+    if (rewardedIntroBtn) rewardedIntroBtn.style.display = 'none';
     const tick = () => {
       statusEl.textContent = `Nächster Wettkampf in ${formatCountdown(getMsUntilMidnight())}`;
     };
@@ -512,6 +519,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("btn-rewarded-play").addEventListener("click", () => {
+    Ads.showRewarded(() => {
+      startWettkampf();
+    });
+  });
+
+  document.getElementById("btn-rewarded-play-intro").addEventListener("click", () => {
     Ads.showRewarded(() => {
       startWettkampf();
     });
