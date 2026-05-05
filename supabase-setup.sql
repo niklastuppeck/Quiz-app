@@ -183,6 +183,7 @@ CREATE POLICY "wrong_questions_delete"
 DROP POLICY IF EXISTS "battles_select" ON battles;
 DROP POLICY IF EXISTS "battles_insert" ON battles;
 DROP POLICY IF EXISTS "battles_update" ON battles;
+DROP POLICY IF EXISTS "battles_delete" ON battles;
 
 CREATE POLICY "battles_select"
   ON battles FOR SELECT
@@ -198,6 +199,11 @@ CREATE POLICY "battles_update"
   ON battles FOR UPDATE
   TO authenticated
   USING (host_id = auth.uid() OR guest_id = auth.uid());
+
+CREATE POLICY "battles_delete"
+  ON battles FOR DELETE
+  TO authenticated
+  USING (host_id = auth.uid());
 
 
 -- ============================================================
