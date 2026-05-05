@@ -1,5 +1,5 @@
 // Service Worker: App-Shell cachen, API-Requests durchlassen
-const CACHE_NAME = 'quiz-app-v2';
+const CACHE_NAME = 'quiz-app-v3';
 
 self.addEventListener('install', () => self.skipWaiting());
 

@@ -1,0 +1,6 @@
+.DS_Store
+generate_log.txt
+generate_questions.py
+supabase-setup.sql
+data/checkpoint.json
+.claude/
