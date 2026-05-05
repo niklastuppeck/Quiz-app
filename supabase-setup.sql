@@ -300,6 +300,69 @@ CREATE POLICY "question_reports_update"
 
 
 -- ============================================================
+-- 11. QUESTION_OVERRIDES
+-- Admin kann Fragen verstecken oder bearbeiten.
+-- Alle User dürfen lesen (damit Overrides im Spiel greifen).
+-- Schreiben/Löschen nur Admins.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS question_overrides (
+  question_hash       TEXT PRIMARY KEY,
+  action              TEXT NOT NULL CHECK (action IN ('hidden', 'edited')),
+  new_question        TEXT,
+  new_answers         JSONB,
+  new_correct_index   INT,
+  updated_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE question_overrides ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "overrides_select" ON question_overrides;
+DROP POLICY IF EXISTS "overrides_insert" ON question_overrides;
+DROP POLICY IF EXISTS "overrides_update" ON question_overrides;
+DROP POLICY IF EXISTS "overrides_delete" ON question_overrides;
+
+CREATE POLICY "overrides_select"
+  ON question_overrides FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "overrides_insert"
+  ON question_overrides FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (SELECT 1 FROM profiles WHERE user_id = auth.uid() AND is_admin = true)
+  );
+
+CREATE POLICY "overrides_update"
+  ON question_overrides FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (SELECT 1 FROM profiles WHERE user_id = auth.uid() AND is_admin = true)
+  );
+
+CREATE POLICY "overrides_delete"
+  ON question_overrides FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (SELECT 1 FROM profiles WHERE user_id = auth.uid() AND is_admin = true)
+  );
+
+
+-- ============================================================
+-- 12. ADMIN-DELETE AUF WETTKAMPF_HISTORY
+-- Admins können beliebige Einträge löschen (z.B. Rangliste-Reset).
+-- ============================================================
+DROP POLICY IF EXISTS "wettkampf_history_admin_delete" ON wettkampf_history;
+
+CREATE POLICY "wettkampf_history_admin_delete"
+  ON wettkampf_history FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (SELECT 1 FROM profiles WHERE user_id = auth.uid() AND is_admin = true)
+  );
+
+
+-- ============================================================
 -- FERTIG!
 -- Alle Policies aktiv, Score-Trigger läuft serverseitig.
 -- ============================================================

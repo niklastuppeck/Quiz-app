@@ -612,6 +612,8 @@ async function loadAdminReports(container) {
           <p class="admin-report-meta">Thema: ${escapeHtml(g.topic_id)}</p>
           ${commentsHtml}
           <div class="admin-report-actions">
+            <button class="btn-secondary" data-ids="${escapeHtml(JSON.stringify(g.ids))}" data-hash="${escapeHtml(g.question_hash)}" data-action="edit" style="font-size:13px;padding:6px 10px">✏️ Bearbeiten</button>
+            <button class="btn-logout" data-ids="${escapeHtml(JSON.stringify(g.ids))}" data-hash="${escapeHtml(g.question_hash)}" data-action="hide" style="font-size:13px;padding:6px 10px">🚫 Verstecken</button>
             <button class="btn-friend-accept" data-ids="${escapeHtml(JSON.stringify(g.ids))}" data-action="resolved">✓ Erledigt</button>
             <button class="btn-friend-reject" data-ids="${escapeHtml(JSON.stringify(g.ids))}" data-action="dismissed">✗ Verwerfen</button>
           </div>
@@ -623,9 +625,27 @@ async function loadAdminReports(container) {
     container.innerHTML = html;
     container.querySelectorAll('[data-action]').forEach(btn => {
       btn.addEventListener('click', async () => {
+        const action = btn.dataset.action;
         let ids;
         try { ids = JSON.parse(btn.dataset.ids); } catch { return; }
-        const action = btn.dataset.action;
+
+        if (action === 'edit') {
+          const hash = btn.dataset.hash;
+          const group = sorted.find(g => g.question_hash === hash);
+          if (group) openAdminEditModal(group, container);
+          return;
+        }
+
+        if (action === 'hide') {
+          const hash = btn.dataset.hash;
+          btn.disabled = true;
+          btn.textContent = '…';
+          const ok = await adminHideQuestion(hash, ids);
+          if (ok) { showToast('Frage versteckt ✓'); loadAdminReports(container); }
+          else btn.disabled = false;
+          return;
+        }
+
         const { error: uerr } = await sb
           .from('question_reports')
           .update({ status: action })
@@ -637,6 +657,264 @@ async function loadAdminReports(container) {
   } catch (e) {
     container.innerHTML = `<p class="loading-hint">Fehler: ${escapeHtml(e.message)}</p>`;
   }
+}
+
+// ============================================================
+// ADMIN: FRAGE VERSTECKEN
+// ============================================================
+function adminQuestionHash(text) {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h) ^ text.charCodeAt(i);
+  return (h >>> 0).toString();
+}
+
+function clearOverrideCache() {
+  localStorage.removeItem('quiz_overrides_v1');
+}
+
+async function adminHideQuestion(questionHash, reportIds) {
+  const { error } = await sb.from('question_overrides').upsert({
+    question_hash: questionHash,
+    action: 'hidden',
+    new_question: null,
+    new_answers: null,
+    new_correct_index: null,
+  }, { onConflict: 'question_hash' });
+  if (error) { showToast('Fehler: ' + error.message); return false; }
+  await sb.from('question_reports').update({ status: 'resolved' }).in('id', reportIds);
+  clearOverrideCache();
+  return true;
+}
+
+// ============================================================
+// ADMIN: FRAGE BEARBEITEN (MODAL)
+// ============================================================
+let _adminEditingGroup = null;
+let _adminEditContainer = null;
+
+function openAdminEditModal(group, container) {
+  _adminEditingGroup = group;
+  _adminEditContainer = container;
+
+  const hintEl = document.getElementById('admin-edit-hint');
+  hintEl.textContent = '';
+  hintEl.classList.remove('error');
+
+  let foundQ = null;
+  if (typeof QUESTIONS !== 'undefined') {
+    outer: for (const qs of Object.values(QUESTIONS)) {
+      for (const q of qs) {
+        if (adminQuestionHash(q.question) === group.question_hash) {
+          foundQ = q;
+          break outer;
+        }
+      }
+    }
+  }
+
+  document.getElementById('admin-edit-question-text').value =
+    foundQ ? foundQ.question : group.question_text;
+
+  const answers = foundQ ? foundQ.answers : ['', '', '', ''];
+  const correctIndex = foundQ ? foundQ.correctIndex : 0;
+
+  document.getElementById('admin-edit-answers-container').innerHTML = answers.map((a, i) => `
+    <div style="display:flex;align-items:center;gap:8px;margin:6px 0">
+      <input type="radio" name="admin-correct" id="admin-correct-${i}" value="${i}" ${i === correctIndex ? 'checked' : ''} />
+      <label for="admin-correct-${i}" style="font-size:13px;color:#94a3b8;min-width:16px;cursor:pointer">${String.fromCharCode(65 + i)}</label>
+      <input type="text" class="text-input" id="admin-answer-${i}" value="${escapeHtml(a)}" placeholder="Antwort ${String.fromCharCode(65 + i)}" style="margin:0;flex:1;font-size:14px" />
+    </div>
+  `).join('');
+
+  document.getElementById('admin-edit-modal').style.display = 'flex';
+}
+
+async function saveAdminEdit() {
+  if (!_adminEditingGroup) return;
+
+  const hintEl = document.getElementById('admin-edit-hint');
+  hintEl.textContent = '';
+  hintEl.classList.remove('error');
+
+  const newQuestion = document.getElementById('admin-edit-question-text').value.trim();
+  if (!newQuestion) {
+    hintEl.textContent = 'Frage darf nicht leer sein.';
+    hintEl.classList.add('error');
+    return;
+  }
+
+  const newAnswers = [0, 1, 2, 3].map(i => {
+    const el = document.getElementById(`admin-answer-${i}`);
+    return el ? el.value.trim() : '';
+  });
+  if (newAnswers.some(a => !a)) {
+    hintEl.textContent = 'Alle 4 Antworten müssen ausgefüllt sein.';
+    hintEl.classList.add('error');
+    return;
+  }
+
+  const correctRadio = document.querySelector('input[name="admin-correct"]:checked');
+  const newCorrectIndex = correctRadio ? parseInt(correctRadio.value) : 0;
+
+  const saveBtn = document.getElementById('btn-admin-edit-save');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '…';
+
+  const { error } = await sb.from('question_overrides').upsert({
+    question_hash: _adminEditingGroup.question_hash,
+    action: 'edited',
+    new_question: newQuestion,
+    new_answers: newAnswers,
+    new_correct_index: newCorrectIndex,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'question_hash' });
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = 'Speichern ✓';
+
+  if (error) {
+    hintEl.textContent = 'Fehler: ' + error.message;
+    hintEl.classList.add('error');
+    return;
+  }
+
+  await sb.from('question_reports').update({ status: 'resolved' }).in('id', _adminEditingGroup.ids);
+  clearOverrideCache();
+  document.getElementById('admin-edit-modal').style.display = 'none';
+  const container = _adminEditContainer;
+  _adminEditingGroup = null;
+  _adminEditContainer = null;
+  showToast('Frage gespeichert ✓');
+  loadAdminReports(container);
+}
+
+function closeAdminEditModal() {
+  document.getElementById('admin-edit-modal').style.display = 'none';
+  _adminEditingGroup = null;
+  _adminEditContainer = null;
+}
+
+// ============================================================
+// ADMIN: RANGLISTE VERWALTEN
+// ============================================================
+async function showAdminRangliste() {
+  document.getElementById('subtitle').textContent = 'Rangliste verwalten';
+  const container = document.getElementById('admin-rangliste-content');
+  container.innerHTML = '<p class="loading-hint">Lade…</p>';
+  showScreen('screen-admin-rangliste');
+  await loadAdminRangliste(container);
+}
+
+async function loadAdminRangliste(container) {
+  try {
+    const { count, error } = await sb
+      .from('wettkampf_history')
+      .select('*', { count: 'exact', head: true });
+    if (error) throw new Error(error.message);
+
+    container.innerHTML = `
+      <div class="settings-card" style="margin:1rem">
+        <h2 class="settings-title">Rangliste verwalten</h2>
+
+        <div class="settings-section">
+          <div class="settings-label">Gesamt: ${count ?? '?'} Einträge</div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label">Gamertag suchen & löschen</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input type="text" id="admin-gamertag-search" class="text-input"
+              placeholder="Gamertag eingeben" style="margin:0;flex:1" />
+            <button class="btn-edit-tag" id="btn-admin-gamertag-search">Suchen</button>
+          </div>
+          <div id="admin-gamertag-result" style="margin-top:8px"></div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-label">Alle Einträge zurücksetzen</div>
+          <p style="font-size:13px;color:#94a3b8;margin:4px 0 10px">
+            Löscht alle Wettkampf-Einträge aller User. Nicht rückgängig!
+          </p>
+          <button class="btn-logout" id="btn-admin-reset-all">🗑️ Alle Einträge löschen</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('btn-admin-gamertag-search').addEventListener('click', adminSearchGamertag);
+    document.getElementById('admin-gamertag-search').addEventListener('keydown', e => {
+      if (e.key === 'Enter') adminSearchGamertag();
+    });
+    document.getElementById('btn-admin-reset-all').addEventListener('click', adminResetAll);
+  } catch (e) {
+    container.innerHTML = `<p class="loading-hint">Fehler: ${escapeHtml(e.message)}</p>`;
+  }
+}
+
+async function adminSearchGamertag() {
+  const gamertag = document.getElementById('admin-gamertag-search').value.trim();
+  const result = document.getElementById('admin-gamertag-result');
+  if (!gamertag) return;
+
+  result.innerHTML = '<p class="loading-hint" style="margin:0">Suche…</p>';
+
+  const { data, error } = await sb
+    .from('wettkampf_history')
+    .select('id, played_date, score')
+    .ilike('gamertag', gamertag)
+    .order('played_date', { ascending: false });
+
+  if (error) {
+    result.innerHTML = `<p style="color:#f87171;font-size:13px">Fehler: ${escapeHtml(error.message)}</p>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    result.innerHTML = `<p style="font-size:13px;color:#94a3b8">Keine Einträge für „${escapeHtml(gamertag)}" gefunden.</p>`;
+    return;
+  }
+
+  const ids = data.map(r => r.id);
+  result.innerHTML = `
+    <p style="font-size:13px;color:#94a3b8;margin:0 0 8px">${data.length} Einträge gefunden.</p>
+    <button class="btn-logout" id="btn-admin-delete-gamertag" style="font-size:13px;padding:8px 14px">
+      🗑️ ${data.length} Einträge löschen
+    </button>
+  `;
+  document.getElementById('btn-admin-delete-gamertag').addEventListener('click', async () => {
+    const { error: delErr } = await sb.from('wettkampf_history').delete().in('id', ids);
+    if (delErr) { showToast('Fehler beim Löschen.'); return; }
+    showToast(`${ids.length} Einträge gelöscht ✓`);
+    const container = document.getElementById('admin-rangliste-content');
+    loadAdminRangliste(container);
+  });
+}
+
+async function adminResetAll() {
+  const confirmed = await new Promise(resolve => {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+      <div class="modal-card">
+        <h3 class="modal-title">⚠️ Alle Einträge löschen?</h3>
+        <p class="modal-subtitle">Löscht die komplette Wettkampf-Geschichte aller User. Nicht rückgängig zu machen!</p>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="cancel-reset">Abbrechen</button>
+          <button class="btn-logout" id="confirm-reset">Ja, alles löschen</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('confirm-reset').addEventListener('click', () => { modal.remove(); resolve(true); });
+    document.getElementById('cancel-reset').addEventListener('click', () => { modal.remove(); resolve(false); });
+  });
+
+  if (!confirmed) return;
+
+  const { error } = await sb.from('wettkampf_history').delete().gte('played_date', '2000-01-01');
+  if (error) { showToast('Fehler: ' + error.message); return; }
+  showToast('Alle Einträge gelöscht ✓');
+  const container = document.getElementById('admin-rangliste-content');
+  loadAdminRangliste(container);
 }
 
 // ============================================================
@@ -1373,6 +1651,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   document.getElementById('btn-admin-reports').addEventListener('click', showAdminReports);
   document.getElementById('btn-admin-reports-back').addEventListener('click', showSettings);
+  document.getElementById('btn-admin-rangliste').addEventListener('click', showAdminRangliste);
+  document.getElementById('btn-admin-rangliste-back').addEventListener('click', showSettings);
+  document.getElementById('btn-admin-edit-cancel').addEventListener('click', closeAdminEditModal);
+  document.getElementById('btn-admin-edit-save').addEventListener('click', saveAdminEdit);
+  document.getElementById('admin-edit-modal').addEventListener('click', e => {
+    if (e.target.id === 'admin-edit-modal') closeAdminEditModal();
+  });
   document.getElementById('btn-stats-back').addEventListener('click', () => {
     document.getElementById('subtitle').textContent = 'Startseite';
     showHome();

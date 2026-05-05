@@ -707,6 +707,7 @@ function updateStat(key, milestone = false) {
 
 // ========== INIT ==========
 document.addEventListener("DOMContentLoaded", async () => {
+  loadAndApplyOverrides().catch(() => {});
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
     window.location.href = "../index.html";

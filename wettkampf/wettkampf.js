@@ -498,6 +498,7 @@ function shuffle(arr) {
 
 // ========== INIT ==========
 document.addEventListener("DOMContentLoaded", () => {
+  loadAndApplyOverrides().catch(() => {});
   renderStreakDisplay(getStreak());
   updateIntroStatus();
 

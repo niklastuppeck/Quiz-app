@@ -156,6 +156,7 @@ function resolveQuestions(refs) {
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
+  loadAndApplyOverrides().catch(() => {});
   const params = new URLSearchParams(window.location.search);
   battleId         = params.get('battleId');
   pendingFriendId  = params.get('friendId');
