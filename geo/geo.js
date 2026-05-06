@@ -343,11 +343,11 @@ function renderFlagImage(code, container) {
 
 // ── Umriss-Rendering (D3 + Topojson) ────────────────────────
 let _worldAtlas = null;
-let _d3Ready = false;
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) { resolve(); return; }
     const s = document.createElement('script');
     s.src = src;
     s.onload = resolve;
@@ -357,10 +357,13 @@ function loadScript(src) {
 }
 
 async function ensureD3() {
-  if (_d3Ready) return;
-  await loadScript('https://cdn.jsdelivr.net/npm/d3-geo@3/dist/d3-geo.min.js');
-  await loadScript('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js');
-  _d3Ready = true;
+  if (window.d3 && window.topojson) return;
+  if (!window.d3) {
+    await loadScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js');
+  }
+  if (!window.topojson) {
+    await loadScript('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js');
+  }
 }
 
 async function getWorldAtlas() {

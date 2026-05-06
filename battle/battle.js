@@ -690,20 +690,17 @@ let _atlasPromise = null;
 
 function battleEnsureD3() {
   if (_d3Promise) return _d3Promise;
-  _d3Promise = new Promise((resolve, reject) => {
-    if (window.d3 && window.topojson) { resolve(); return; }
-    const s1 = document.createElement('script');
-    s1.src = 'https://cdn.jsdelivr.net/npm/d3-geo@3/dist/d3-geo.umd.min.js';
-    s1.onload = () => {
-      const s2 = document.createElement('script');
-      s2.src = 'https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';
-      s2.onload = resolve;
-      s2.onerror = reject;
-      document.head.appendChild(s2);
-    };
-    s1.onerror = reject;
-    document.head.appendChild(s1);
-  });
+  _d3Promise = (async () => {
+    if (window.d3 && window.topojson) return;
+    const load = src => new Promise((res, rej) => {
+      if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+      const s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    if (!window.d3) await load('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js');
+    if (!window.topojson) await load('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js');
+  })();
   return _d3Promise;
 }
 

@@ -1,3 +1,9 @@
+const GEO_TOPIC_DEFS = [
+  { id: 'geo_flaggen',      name: 'Flaggen',     icon: '🚩',  color: '#10b981' },
+  { id: 'geo_hauptstaedte', name: 'Hauptstädte', icon: '🏛️', color: '#06b6d4' },
+  { id: 'geo_umrisse',      name: 'Umrisse',     icon: '🗺️', color: '#8b5cf6' },
+];
+
 // ============================================================
 // STREAK HELPERS
 // ============================================================
@@ -1300,12 +1306,9 @@ async function loadFriendStats(container, friendUserId, friendGamertag) {
         </div>
         <div class="stats-topics">
       `;
-      TOPICS.forEach(topic => {
-        const s = statsMap[topic.id];
-        const wrong = wrongMap[topic.id] || 0;
-        if (!s || s.total_answered === 0) return;
+      const renderFriendTopicCard = (topic, s) => {
         const pct = Math.round((s.correct_answered / s.total_answered) * 100);
-        html += `
+        return `
           <div class="stats-topic-card" style="--card-color: ${topic.color}">
             <div class="stats-topic-header">
               <span class="stats-topic-icon">${topic.icon}</span>
@@ -1317,11 +1320,23 @@ async function loadFriendStats(container, friendUserId, friendGamertag) {
             </div>
             <div class="stats-topic-footer">
               <span>${s.total_answered} beantwortet</span>
-              ${wrong > 0 ? `<span class="stats-wrong-hint">${wrong} offen</span>` : '<span class="stats-all-ok">✓ alles richtig</span>'}
             </div>
           </div>
         `;
+      };
+
+      TOPICS.forEach(topic => {
+        const s = statsMap[topic.id];
+        if (!s || s.total_answered === 0) return;
+        html += renderFriendTopicCard(topic, s);
       });
+
+      const geoWithData = GEO_TOPIC_DEFS.filter(t => statsMap[t.id] && statsMap[t.id].total_answered > 0);
+      if (geoWithData.length > 0) {
+        html += `<div class="stats-section-title" style="margin-top:1.25rem;margin-bottom:0.5rem">🌍 Geographie</div>`;
+        geoWithData.forEach(topic => html += renderFriendTopicCard(topic, statsMap[topic.id]));
+      }
+
       html += '</div>';
     }
 
@@ -1396,20 +1411,15 @@ async function loadStats(container) {
         </div>
         <div class="stats-topics">
       `;
-      TOPICS.forEach(topic => {
-        const s = statsMap[topic.id];
-        const wrong = wrongMap[topic.id] || 0;
-        if (!s || s.total_answered === 0) return;
-        const pct = Math.round((s.correct_answered / s.total_answered) * 100);
-        html += `
+      const renderTopicCard = (topic, s, wrong) => `
           <div class="stats-topic-card" style="--card-color: ${topic.color}">
             <div class="stats-topic-header">
               <span class="stats-topic-icon">${topic.icon}</span>
               <span class="stats-topic-name">${topic.name}</span>
-              <span class="stats-topic-pct">${pct}%</span>
+              <span class="stats-topic-pct">${Math.round((s.correct_answered / s.total_answered) * 100)}%</span>
             </div>
             <div class="stats-bar-track">
-              <div class="stats-bar-fill" style="width: ${pct}%; background: ${topic.color}"></div>
+              <div class="stats-bar-fill" style="width: ${Math.round((s.correct_answered / s.total_answered) * 100)}%; background: ${topic.color}"></div>
             </div>
             <div class="stats-topic-footer">
               <span>${s.total_answered} beantwortet</span>
@@ -1417,7 +1427,21 @@ async function loadStats(container) {
             </div>
           </div>
         `;
+
+      TOPICS.forEach(topic => {
+        const s = statsMap[topic.id];
+        if (!s || s.total_answered === 0) return;
+        html += renderTopicCard(topic, s, wrongMap[topic.id] || 0);
       });
+
+      const geoWithData = GEO_TOPIC_DEFS.filter(t => statsMap[t.id] && statsMap[t.id].total_answered > 0);
+      if (geoWithData.length > 0) {
+        html += `<div class="stats-section-title" style="margin-top:1.25rem;margin-bottom:0.5rem">🌍 Geographie</div>`;
+        geoWithData.forEach(topic => {
+          html += renderTopicCard(topic, statsMap[topic.id], wrongMap[topic.id] || 0);
+        });
+      }
+
       html += '</div>';
     }
 
