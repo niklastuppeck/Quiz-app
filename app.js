@@ -398,40 +398,9 @@ function showHome() {
     }
   }
 
-  const wkBtn = document.getElementById('btn-wettkampf');
-  const wkStatus = document.getElementById('wettkampf-status');
-  wkBtn.disabled = false;
-  const count = getTodayWkCount();
-  if (count === 0) {
-    wkStatus.textContent = '15 Fragen · bis zu 3× pro Tag';
-  } else if (count < 3) {
-    const remaining = 3 - count;
-    wkStatus.textContent = `Heute gespielt · noch ${remaining}× via Werbung · ${formatCountdown(getMsUntilMidnight())}`;
-    startCountdownRefresh();
-  } else {
-    wkStatus.textContent = `Heute 3× gespielt · ${formatCountdown(getMsUntilMidnight())}`;
-    startCountdownRefresh();
-  }
-
   showScreen('screen-home');
   refreshFriendsHomeBadge();
   startAutoRefresh(refreshFriendsHomeBadge, 60000);
-}
-
-function startCountdownRefresh() {
-  const id = setInterval(() => {
-    const count = getTodayWkCount();
-    if (count === 0) { showHome(); return; }
-    const el = document.getElementById('wettkampf-status');
-    if (!el) return;
-    const cd = formatCountdown(getMsUntilMidnight());
-    if (count < 3) {
-      el.textContent = `Heute gespielt · noch ${3 - count}× via Werbung · ${cd}`;
-    } else {
-      el.textContent = `Heute 3× gespielt · ${cd}`;
-    }
-  }, 1000);
-  registerCleanup(() => clearInterval(id));
 }
 
 function getTodayString() {
@@ -1623,6 +1592,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Home
   document.getElementById('btn-ueben').addEventListener('click', () => {
     window.location.href = 'ueben/index.html';
+  });
+  document.getElementById('btn-geo').addEventListener('click', () => {
+    window.location.href = 'geo/index.html';
   });
   document.getElementById('btn-wettkampf').addEventListener('click', () => {
     window.location.href = 'wettkampf/index.html';

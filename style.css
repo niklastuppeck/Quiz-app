@@ -1053,6 +1053,107 @@ footer {
   margin: 1.25rem 0 0.65rem;
 }
 
+/* ── 2×2 Mode Grid (Home) ── */
+.mode-grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.mode-tile {
+  border-radius: 20px;
+  padding: 1.4rem 1.1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 130px;
+  width: 100%;
+}
+
+.mode-tile:active {
+  transform: scale(0.97);
+}
+
+.mode-tile-wettkampf {
+  background: linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(245,158,11,0.06) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.mode-tile-geo {
+  background: linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.06) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.mode-tile-ueben {
+  background: linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.06) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.mode-tile-battle {
+  background: linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.06) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.tile-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.tile-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.tile-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* ── Geo Question Images ── */
+.geo-question-image {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.geo-flag-img {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: block;
+  object-fit: cover;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.geo-map-svg {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+}
+
+.geo-map-loading,
+.geo-map-error {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
 /* ── Hero Card (Wettkampf) ── */
 .mode-hero {
   width: 100%;

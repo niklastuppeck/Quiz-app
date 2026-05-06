@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Quiz App Geographie: Lerne Flaggen, Hauptstädte und Länderumrisse." />
+  <title>Geographie – Quiz App</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="../style.css?v=2" />
+  <script src="/consent.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Quiz App</h1>
+    <p class="subtitle" id="subtitle">Geographie</p>
+  </header>
+
+  <main>
+
+    <!-- Screen: Modus-Auswahl -->
+    <section id="screen-modes" class="screen active">
+      <button class="btn-back btn-back-standalone" id="btn-back-home">← Zurück</button>
+      <div class="topics-grid" id="modes-grid"></div>
+    </section>
+
+    <!-- Screen: Zufällig / Falsche wiederholen -->
+    <section id="screen-quiz-mode" class="screen">
+      <button class="btn-back btn-back-standalone" id="btn-back-modes">← Zurück</button>
+      <p id="quiz-mode-hint" style="font-size:13px;color:#f59e0b;text-align:center;padding:4px 0;min-height:20px"></p>
+      <div class="topics-grid">
+        <button class="topic-card" id="btn-mode-random" style="--card-color:#6366f1">
+          <span class="topic-icon">🎲</span>
+          <div class="topic-info">
+            <div class="topic-name">Zufällig üben</div>
+            <div class="topic-description">Alle Länder in zufälliger Reihenfolge</div>
+          </div>
+          <span class="topic-arrow">›</span>
+        </button>
+        <button class="topic-card" id="btn-mode-repeat" style="--card-color:#f59e0b">
+          <span class="topic-icon">🔁</span>
+          <div class="topic-info">
+            <div class="topic-name">Falsche wiederholen</div>
+            <div class="topic-description" id="wrong-count-label">Lade…</div>
+          </div>
+          <span class="topic-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen: Quiz -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-header">
+        <button class="btn-back" id="btn-back-quiz">← Zurück</button>
+        <button class="btn-mute" id="btn-mute" title="Sound an/aus">🔊</button>
+      </div>
+
+      <div class="quiz-stats-strip">
+        <div class="stat stat-correct">
+          <span class="stat-value" id="stat-correct">0</span>
+          <span class="stat-label">Richtig</span>
+        </div>
+        <div class="quiz-stats-sep"></div>
+        <div class="stat stat-wrong">
+          <span class="stat-value" id="stat-wrong">0</span>
+          <span class="stat-label">Falsch</span>
+        </div>
+        <div class="quiz-stats-sep"></div>
+        <div class="stat stat-streak">
+          <span class="stat-streak-icon">🔥</span>
+          <span class="stat-value" id="stat-streak">0</span>
+          <span class="stat-label">Serie</span>
+          <span class="streak-toast" id="streak-toast"></span>
+        </div>
+      </div>
+
+      <p class="repeat-progress" id="repeat-progress"></p>
+
+      <div class="question-card">
+        <div class="geo-question-image" id="geo-question-image" style="display:none"></div>
+        <p class="question-text" id="question-text"></p>
+      </div>
+
+      <div class="answers-list" id="answers-list"></div>
+
+      <button class="next-btn" id="next-btn" disabled>Nächste Frage</button>
+
+      <button class="btn-report" id="btn-report" aria-label="Frage melden">🚩 Frage melden</button>
+    </section>
+
+    <!-- Screen: Session-Ergebnis -->
+    <section id="screen-session-result" class="screen">
+      <div class="result-card">
+        <div class="result-emoji" id="session-result-emoji">🎉</div>
+        <h2 class="result-title" id="session-result-title">Session abgeschlossen!</h2>
+        <p class="result-subtitle" id="session-result-subtitle"></p>
+        <div class="wkr-stats">
+          <div class="wkr-stat wkr-stat-correct">
+            <div class="wkr-stat-icon">✓</div>
+            <div class="wkr-stat-value" id="session-result-correct">0</div>
+            <div class="wkr-stat-label">Richtig</div>
+          </div>
+          <div class="wkr-stat wkr-stat-wrong">
+            <div class="wkr-stat-icon">✗</div>
+            <div class="wkr-stat-value" id="session-result-wrong">0</div>
+            <div class="wkr-stat-label">Falsch</div>
+          </div>
+          <div class="wkr-stat wkr-stat-final">
+            <div class="wkr-stat-icon">%</div>
+            <div class="wkr-stat-value" id="session-result-percent">0%</div>
+            <div class="wkr-stat-label">Quote</div>
+          </div>
+        </div>
+        <div class="result-actions">
+          <button class="btn-primary" id="btn-play-again">Nochmal spielen</button>
+          <button class="btn-secondary" id="btn-session-to-home">Zurück zur Auswahl</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Frage melden -->
+  <div id="report-modal" class="modal-overlay" style="display:none">
+    <div class="modal-card">
+      <h3 class="modal-title">🚩 Frage melden</h3>
+      <p class="modal-subtitle">Was ist das Problem?</p>
+      <div class="report-reasons">
+        <button class="report-reason-btn" data-reason="wrong_answer">❌ Falsche Antwort</button>
+        <button class="report-reason-btn" data-reason="unclear">❓ Unklar / Mehrdeutig</button>
+        <button class="report-reason-btn" data-reason="grammar">📝 Grammatik / Tippfehler</button>
+        <button class="report-reason-btn" data-reason="other">… Sonstiges</button>
+      </div>
+      <textarea id="report-comment" class="text-input" rows="2"
+        placeholder="Optionaler Kommentar…" style="resize:none;margin-top:8px"></textarea>
+      <p class="auth-hint error" id="report-hint"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="btn-report-cancel">Abbrechen</button>
+        <button class="btn-primary" id="btn-report-send" disabled>Senden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#e2e8f0;padding:12px 20px;border-radius:10px;font-size:14px;z-index:9998;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.4)"></div>
+
+  <footer>
+    <p>Quiz App · <a href="../impressum.html" style="color:#64748b">Impressum</a> · <a href="../datenschutz.html" style="color:#64748b">Datenschutz</a></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../supabase-client.js"></script>
+  <script src="../data/topics.js"></script>
+  <script src="../data/questions.js"></script>
+  <script src="../data/countries.js"></script>
+  <script src="../data/geo-questions.js"></script>
+  <script src="../question-overrides.js"></script>
+  <script src="../sounds.js"></script>
+  <script src="../report.js"></script>
+  <script src="../ads.js"></script>
+  <script src="geo.js"></script>
+</body>
+</html>

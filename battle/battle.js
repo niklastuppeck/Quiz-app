@@ -443,7 +443,8 @@ function showSetupScreen() {
   mixBtn.addEventListener('click', () => selectTopic('mix', mixBtn));
   grid.appendChild(mixBtn);
 
-  TOPICS.forEach(t => {
+  const allTopics = [...TOPICS, ...(typeof GEO_TOPICS !== 'undefined' ? GEO_TOPICS : [])];
+  allTopics.forEach(t => {
     const btn = document.createElement('button');
     btn.className = 'battle-topic-btn';
     btn.dataset.id = t.id;
@@ -642,7 +643,31 @@ function renderQuestion(qIdx, startedAt) {
   if (!q) return;
 
   document.getElementById('battle-counter').textContent = `${qIdx + 1} / ${getQuestionCount()}`;
-  document.getElementById('battle-question-text').textContent = q.question;
+
+  const imgContainer = document.getElementById('battle-question-image');
+  const questionText = document.getElementById('battle-question-text');
+  imgContainer.innerHTML = '';
+  imgContainer.style.display = 'none';
+  questionText.textContent = '';
+
+  if (q.question.startsWith('__geo_flag__:')) {
+    const code = q.question.slice('__geo_flag__:'.length).toLowerCase();
+    const img = document.createElement('img');
+    img.className = 'geo-flag-img';
+    img.src = `https://flagcdn.com/w320/${code}.png`;
+    img.srcset = `https://flagcdn.com/w640/${code}.png 2x`;
+    img.alt = '';
+    imgContainer.appendChild(img);
+    imgContainer.style.display = '';
+    questionText.textContent = 'Welches Land zeigt diese Flagge?';
+  } else if (q.question.startsWith('__geo_outline__:')) {
+    const code = q.question.slice('__geo_outline__:'.length);
+    imgContainer.style.display = '';
+    questionText.textContent = 'Welches Land zeigt dieser Umriss?';
+    battleRenderOutline(code, imgContainer);
+  } else {
+    questionText.textContent = q.question;
+  }
 
   const list = document.getElementById('battle-answers-list');
   list.innerHTML = '';
@@ -657,6 +682,104 @@ function renderQuestion(qIdx, startedAt) {
 
   // Timer starten – synchronisiert mit current_started_at
   startSyncedTimer(startedAt);
+}
+
+// ── Geo rendering for Battle ──
+let _d3Promise = null;
+let _atlasPromise = null;
+
+function battleEnsureD3() {
+  if (_d3Promise) return _d3Promise;
+  _d3Promise = new Promise((resolve, reject) => {
+    if (window.d3 && window.topojson) { resolve(); return; }
+    const s1 = document.createElement('script');
+    s1.src = 'https://cdn.jsdelivr.net/npm/d3-geo@3/dist/d3-geo.umd.min.js';
+    s1.onload = () => {
+      const s2 = document.createElement('script');
+      s2.src = 'https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js';
+      s2.onload = resolve;
+      s2.onerror = reject;
+      document.head.appendChild(s2);
+    };
+    s1.onerror = reject;
+    document.head.appendChild(s1);
+  });
+  return _d3Promise;
+}
+
+function battleGetWorldAtlas() {
+  if (_atlasPromise) return _atlasPromise;
+  _atlasPromise = fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    .then(r => r.json());
+  return _atlasPromise;
+}
+
+const BATTLE_CONTINENT_BOUNDS = {
+  europa:       { x: [-25, 45],   y: [30, 73]  },
+  asien:        { x: [25, 150],   y: [-15, 77] },
+  afrika:       { x: [-20, 52],   y: [-36, 38] },
+  nordamerika:  { x: [-170, -52], y: [5, 84]   },
+  suedamerika:  { x: [-82, -34],  y: [-56, 14] },
+  ozeanien:     { x: [110, 180],  y: [-48, 5]  },
+};
+
+async function battleRenderOutline(code, container) {
+  const loading = document.createElement('div');
+  loading.className = 'geo-map-loading';
+  loading.textContent = '🗺️ Lade Karte…';
+  container.appendChild(loading);
+
+  try {
+    await battleEnsureD3();
+    const world = await battleGetWorldAtlas();
+
+    const country = (typeof COUNTRIES !== 'undefined') && COUNTRIES.find(c => c.code === code);
+    if (!country || !country.numeric) throw new Error('no numeric');
+
+    const continent = country.continent;
+    const bounds = BATTLE_CONTINENT_BOUNDS[continent] || { x: [-180, 180], y: [-90, 90] };
+    const [[x0, x1], [y0, y1]] = [bounds.x, bounds.y];
+
+    const W = 360, H = 240;
+    const bbox = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]]] } };
+    const projection = d3.geoMercator().fitSize([W, H], bbox);
+    const path = d3.geoPath(projection);
+
+    const allFeatures = topojson.feature(world, world.objects.countries).features;
+    const targetFeature = allFeatures.find(f => +f.id === +country.numeric);
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.className.baseVal = 'geo-map-svg';
+
+    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bg.setAttribute('width', W); bg.setAttribute('height', H); bg.setAttribute('fill', '#0a1628');
+    svg.appendChild(bg);
+
+    const continentNumerics = new Set(
+      (typeof COUNTRIES !== 'undefined' ? COUNTRIES : [])
+        .filter(c => c.continent === continent && c.numeric)
+        .map(c => +c.numeric)
+    );
+
+    allFeatures.forEach(f => {
+      if (!continentNumerics.has(+f.id)) return;
+      const d = path(f);
+      if (!d) return;
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      el.setAttribute('d', d);
+      el.setAttribute('fill', +f.id === +country.numeric ? '#818cf8' : '#1e3a5f');
+      el.setAttribute('stroke', '#0a1628');
+      el.setAttribute('stroke-width', '0.5');
+      svg.appendChild(el);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(svg);
+  } catch (e) {
+    container.innerHTML = '<div class="geo-map-error">Karte nicht verfügbar</div>';
+  }
 }
 
 function startSyncedTimer(startedAtIso) {
