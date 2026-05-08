@@ -391,7 +391,10 @@ function afterLogin(user) {
 function showHome() {
   showSettingsBtn(true);
   document.getElementById('subtitle').textContent = 'Startseite';
-  document.getElementById('greeting-name').textContent = getGamertag();
+  const gamertag = getGamertag();
+  document.getElementById('greeting-name').textContent = gamertag;
+  const avatarEl = document.getElementById('home-avatar');
+  if (avatarEl && gamertag) avatarEl.textContent = gamertag.charAt(0);
 
   const streak = getActiveStreak();
   const streakPill = document.getElementById('streak-pill');
@@ -501,7 +504,57 @@ async function onSaveGamertag() {
   saveGamertag(value);
   document.getElementById('settings-gamertag-display').textContent = value;
   document.getElementById('greeting-name').textContent = value;
+  const avatarEl = document.getElementById('home-avatar');
+  if (avatarEl) avatarEl.textContent = value.charAt(0);
   collapseGamertagForm();
+}
+
+async function onDeleteAccount() {
+  const confirmed = await new Promise(resolve => {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+      <div class="modal-card">
+        <h3 class="modal-title">Account löschen?</h3>
+        <p class="modal-subtitle" style="color:#94a3b8;font-size:14px;margin-bottom:1rem">
+          Dein Account und alle gespeicherten Daten (Statistiken, Freunde, Spielverlauf) werden
+          <strong style="color:#e2e8f0">unwiderruflich gelöscht</strong>. Diese Aktion kann nicht rückgängig gemacht werden.
+        </p>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="cancel-delete">Abbrechen</button>
+          <button class="btn-logout" id="confirm-delete">Ja, Account löschen</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('confirm-delete').addEventListener('click', () => { modal.remove(); resolve(true); });
+    document.getElementById('cancel-delete').addEventListener('click', () => { modal.remove(); resolve(false); });
+    modal.addEventListener('click', e => { if (e.target === modal) { modal.remove(); resolve(false); } });
+  });
+
+  if (!confirmed) return;
+
+  const btn = document.getElementById('btn-delete-account');
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  const { error } = await sb.rpc('delete_my_account');
+
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = 'Account löschen';
+    showToast('Fehler beim Löschen — bitte wende dich per E-Mail an uns.');
+    return;
+  }
+
+  localStorage.clear();
+  showSettingsBtn(false);
+  document.getElementById('subtitle').textContent = '';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  setHint('login-hint', 'Dein Account wurde gelöscht.', false);
+  showScreen('screen-auth');
 }
 
 async function onLogout() {
@@ -1681,6 +1734,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-save-gamertag').addEventListener('click', onSaveGamertag);
   document.getElementById('btn-cancel-gamertag').addEventListener('click', collapseGamertagForm);
   document.getElementById('btn-logout').addEventListener('click', onLogout);
+  document.getElementById('btn-delete-account').addEventListener('click', onDeleteAccount);
 
   // Session prüfen beim Start
   const { data: { session } } = await sb.auth.getSession();

@@ -663,7 +663,7 @@ function renderQuestion(qIdx, startedAt) {
   } else if (q.question.startsWith('__geo_outline__:')) {
     const code = q.question.slice('__geo_outline__:'.length);
     imgContainer.style.display = '';
-    questionText.textContent = 'Welches Land zeigt dieser Umriss?';
+    questionText.textContent = '';
     battleRenderOutline(code, imgContainer);
   } else {
     questionText.textContent = q.question;
@@ -721,10 +721,7 @@ const BATTLE_CONTINENT_BOUNDS = {
 };
 
 async function battleRenderOutline(code, container) {
-  const loading = document.createElement('div');
-  loading.className = 'geo-map-loading';
-  loading.textContent = '🗺️ Lade Karte…';
-  container.appendChild(loading);
+  container.innerHTML = '<div class="geo-map-loading">Karte wird geladen…</div>';
 
   try {
     await battleEnsureD3();
@@ -733,42 +730,52 @@ async function battleRenderOutline(code, container) {
     const country = (typeof COUNTRIES !== 'undefined') && COUNTRIES.find(c => c.code === code);
     if (!country || !country.numeric) throw new Error('no numeric');
 
-    const continent = country.continent;
-    const bounds = BATTLE_CONTINENT_BOUNDS[continent] || { x: [-180, 180], y: [-90, 90] };
-    const [[x0, x1], [y0, y1]] = [bounds.x, bounds.y];
-
-    const W = 360, H = 240;
-    const bbox = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]]] } };
-    const projection = d3.geoMercator().fitSize([W, H], bbox);
-    const path = d3.geoPath(projection);
-
+    const contBounds = BATTLE_CONTINENT_BOUNDS[country.continent] || { x: [-180,180], y: [-90,90] };
     const allFeatures = topojson.feature(world, world.objects.countries).features;
     const targetFeature = allFeatures.find(f => +f.id === +country.numeric);
 
+    const continentNumerics = new Set(
+      (typeof COUNTRIES !== 'undefined' ? COUNTRIES : [])
+        .filter(c => c.continent === country.continent && c.numeric)
+        .map(c => +c.numeric)
+    );
+
+    let viewX, viewY;
+    if (targetFeature) {
+      const [[lon0, lat0], [lon1, lat1]] = d3.geoBounds(targetFeature);
+      const span = Math.max(lon1 - lon0, lat1 - lat0);
+      const pad = Math.min(Math.max(span * 0.6, 5), 22);
+      viewX = [Math.max(contBounds.x[0], lon0 - pad), Math.min(contBounds.x[1], lon1 + pad)];
+      viewY = [Math.max(contBounds.y[0], lat0 - pad), Math.min(contBounds.y[1], lat1 + pad)];
+    } else {
+      viewX = contBounds.x; viewY = contBounds.y;
+    }
+
+    const W = 560, H = 340;
+    const bbox = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [
+      [[viewX[0],viewY[0]],[viewX[1],viewY[0]],[viewX[1],viewY[1]],[viewX[0],viewY[1]],[viewX[0],viewY[0]]]
+    ]}};
+    const projection = d3.geoMercator().fitSize([W, H], bbox);
+    const pathGen = d3.geoPath(projection);
+
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.className.baseVal = 'geo-map-svg';
+    svg.setAttribute('width', '100%');
+    svg.style.borderRadius = '12px';
 
     const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     bg.setAttribute('width', W); bg.setAttribute('height', H); bg.setAttribute('fill', '#0a1628');
     svg.appendChild(bg);
 
-    const continentNumerics = new Set(
-      (typeof COUNTRIES !== 'undefined' ? COUNTRIES : [])
-        .filter(c => c.continent === continent && c.numeric)
-        .map(c => +c.numeric)
-    );
-
     allFeatures.forEach(f => {
       if (!continentNumerics.has(+f.id)) return;
-      const d = path(f);
+      const d = pathGen(f);
       if (!d) return;
       const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       el.setAttribute('d', d);
       el.setAttribute('fill', +f.id === +country.numeric ? '#818cf8' : '#1e3a5f');
-      el.setAttribute('stroke', '#0a1628');
-      el.setAttribute('stroke-width', '0.5');
+      el.setAttribute('stroke', '#0f172a');
+      el.setAttribute('stroke-width', '1');
       svg.appendChild(el);
     });
 

@@ -7,11 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Das große Quiz-Spiel: Üben, Wettkampf und Battle gegen Freunde. Teste dein Wissen in verschiedenen Kategorien!" />
-  <meta property="og:title" content="Quiz App" />
+  <meta property="og:title" content="Quexler" />
   <meta property="og:description" content="Teste dein Wissen – Wettkampf, Üben und Battle gegen Freunde." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="/favicon.svg" />
-  <title>Quiz App</title>
+  <title>Quexler</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
   <link rel="manifest" href="/manifest.json" />
@@ -21,7 +21,7 @@
 <body>
   <header>
     <div class="header-inner">
-      <h1>Quiz App</h1>
+      <h1>Quexler</h1>
       <div class="header-right">
         <span id="streak-pill" class="streak-pill" style="display:none">🔥 <span id="streak-pill-count"></span></span>
         <button class="btn-settings" id="btn-settings" aria-label="Einstellungen" style="display:none">⚙️</button>
@@ -166,15 +166,19 @@
 
         <div class="settings-section settings-section-logout">
           <button class="btn-logout" id="btn-logout">Abmelden</button>
+          <button class="btn-delete-account" id="btn-delete-account">Account löschen</button>
         </div>
       </div>
     </section>
 
     <!-- Screen: Home -->
     <section id="screen-home" class="screen">
-      <div class="home-greeting">
-        <p class="greeting-hello">Hallo,</p>
-        <p class="greeting-name" id="greeting-name">Spieler</p>
+      <div class="home-profile">
+        <div class="home-avatar" id="home-avatar">?</div>
+        <div class="home-profile-text">
+          <span class="home-profile-hello">Willkommen zurück</span>
+          <span class="home-profile-name" id="greeting-name">Spieler</span>
+        </div>
       </div>
 
       <p class="home-section-label">Spielen</p>
@@ -308,7 +312,7 @@
   </div>
 
   <footer>
-    <p>Quiz App · v1.0 · <a href="impressum.html" style="color:#64748b">Impressum</a> · <a href="datenschutz.html" style="color:#64748b">Datenschutz</a></p>
+    <p>Quexler · v1.0 · <a href="impressum.html" style="color:#64748b">Impressum</a> · <a href="datenschutz.html" style="color:#64748b">Datenschutz</a></p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

@@ -1,7 +1,7 @@
 {
-  "name": "Quiz App",
-  "short_name": "Quiz App",
-  "description": "Das große Quiz-Spiel – Üben, Wettkampf und Battle gegen Freunde.",
+  "name": "Quexler",
+  "short_name": "Quexler",
+  "description": "Das große Quizduell – Üben, Wettkampf und Battle gegen Freunde.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

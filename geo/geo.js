@@ -17,6 +17,40 @@ const CONTINENT_BOUNDS = {
   ozeanien:     { x: [110, 180],  y: [-48, 5]  },
 };
 
+// Wider bounds for the overview slide — shows the continent + surrounding oceans.
+const OVERVIEW_BOUNDS = {
+  europa:      { lon: [-58,  72], lat: [22, 75] },
+  asien:       { lon: [18,  175], lat: [-22, 75] },
+  afrika:      { lon: [-35,  75], lat: [-52, 43] },
+  nordamerika: { lon: [-180, -35], lat: [6,  82] },
+  suedamerika: { lon: [-100, -15], lat: [-62, 18] },
+  ozeanien:    { lon: [86,  180],  lat: [-55, 12] },
+};
+
+// Ocean and sea labels (German) with their approximate centre coordinates.
+const OCEAN_LABELS = [
+  { text: 'Pazifischer Ozean',    lon:  165, lat:   8 },
+  { text: 'Pazifischer Ozean',    lon: -138, lat:   2 },
+  { text: 'Atlantischer Ozean',   lon:  -28, lat:  10 },
+  { text: 'Atlantischer Ozean',   lon:  -32, lat:  44 },
+  { text: 'Südatlantik',          lon:  -16, lat: -28 },
+  { text: 'Indischer Ozean',      lon:   78, lat: -22 },
+  { text: 'Arktischer Ozean',     lon:    0, lat:  84 },
+  { text: 'Südlicher Ozean',      lon:   45, lat: -58 },
+  { text: 'Mittelmeer',           lon:   16, lat:  37 },
+  { text: 'Nordsee',              lon:    4, lat:  57 },
+  { text: 'Ostsee',               lon:   20, lat:  60 },
+  { text: 'Rotes Meer',           lon:   38, lat:  20 },
+  { text: 'Arabisches Meer',      lon:   64, lat:  17 },
+  { text: 'Persischer Golf',      lon:   52, lat:  26 },
+  { text: 'Golf von Bengalen',    lon:   88, lat:  13 },
+  { text: 'Südchinesisches Meer', lon:  113, lat:  12 },
+  { text: 'Japanisches Meer',     lon:  135, lat:  40 },
+  { text: 'Karibik',              lon:  -73, lat:  15 },
+  { text: 'Golf von Mexiko',      lon:  -90, lat:  24 },
+  { text: 'Hudsonbai',            lon:  -85, lat:  60 },
+];
+
 const state = {
   topicId: null,
   quizMode: 'random',
@@ -309,8 +343,8 @@ async function renderQuestion(q) {
   } else if (q.question.startsWith('__geo_outline__:')) {
     const code = q.question.slice('__geo_outline__:'.length);
     imgContainer.style.display = '';
+    textEl.textContent = 'Welches Land ist hier markiert?';
     await renderOutlineMap(code, imgContainer);
-    textEl.textContent = 'Welches Land ist markiert?';
   } else {
     imgContainer.style.display = 'none';
     imgContainer.innerHTML = '';
@@ -343,6 +377,20 @@ function renderFlagImage(code, container) {
 
 // ── Umriss-Rendering (D3 + Topojson) ────────────────────────
 let _worldAtlas = null;
+
+// Returns a single-polygon feature using only the largest ring of a MultiPolygon.
+// This prevents overseas territories (e.g. French Guiana for France) from
+// skewing the bounding box and zoom level.
+function mainBodyFeature(feature) {
+  if (feature.geometry.type !== 'MultiPolygon') return feature;
+  let maxLen = 0, best = null;
+  for (const ring of feature.geometry.coordinates) {
+    if (ring[0].length > maxLen) { maxLen = ring[0].length; best = ring; }
+  }
+  return best
+    ? { type: 'Feature', geometry: { type: 'Polygon', coordinates: best } }
+    : feature;
+}
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -380,60 +428,211 @@ async function renderOutlineMap(countryCode, container) {
     const world = await getWorldAtlas();
 
     const country = COUNTRIES.find(c => c.code === countryCode);
-    if (!country || !country.numeric) { throw new Error('kein Numerisch'); }
+    if (!country || !country.numeric) throw new Error('kein Numerisch');
 
-    const bounds = CONTINENT_BOUNDS[country.continent];
-    if (!bounds) { throw new Error('kein Kontinent'); }
+    const contBounds = CONTINENT_BOUNDS[country.continent];
+    if (!contBounds) throw new Error('kein Kontinent');
 
     const allFeatures = topojson.feature(world, world.objects.countries).features;
     const contNumerics = new Set(
-      COUNTRIES.filter(c => c.continent === country.continent && c.numeric).map(c => c.numeric)
+      COUNTRIES.filter(c => c.continent === country.continent && c.numeric).map(c => +c.numeric)
     );
     const continentFeatures = allFeatures.filter(f => contNumerics.has(+f.id));
 
-    const w = container.clientWidth || 320;
-    const h = Math.round(Math.min(w * 0.68, 220));
+    const w = 560, h = 440;
 
-    const bboxFeature = {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[bounds.x[0], bounds.y[0]], [bounds.x[1], bounds.y[0]],
-                        [bounds.x[1], bounds.y[1]], [bounds.x[0], bounds.y[1]],
-                        [bounds.x[0], bounds.y[0]]]],
-      },
+    const getBoundedContFeatures = () => {
+      const bf = continentFeatures.filter(feat => {
+        try {
+          const c = d3.geoCentroid(feat);
+          return c[0] >= contBounds.x[0] && c[0] <= contBounds.x[1]
+              && c[1] >= contBounds.y[0] && c[1] <= contBounds.y[1];
+        } catch { return false; }
+      });
+      return bf.length > 0 ? bf : continentFeatures;
     };
 
-    const projection = d3.geoMercator().fitSize([w, h], bboxFeature);
-    const pathGen = d3.geoPath(projection);
+    const countNeighbors = (p) => {
+      let n = 0;
+      for (const f of continentFeatures) {
+        if (+f.id === +country.numeric) continue;
+        const pt = p(d3.geoCentroid(f));
+        if (pt && pt[0] > 0 && pt[0] < w && pt[1] > 0 && pt[1] < h) n++;
+      }
+      return n;
+    };
 
+    const targetFeature = allFeatures.find(f => +f.id === +country.numeric);
+
+    // ── Slide 1: detail projection (zoom until 2 neighbors visible) ──
+    let projection;
+    if (targetFeature) {
+      const mainFeat = mainBodyFeature(targetFeature);
+      const center = d3.geoCentroid(mainFeat);
+      let proj = d3.geoMercator().fitExtent(
+        [[w * 0.35, h * 0.35], [w * 0.65, h * 0.65]], mainFeat
+      );
+      const scale = Math.max(200, Math.min(5000, proj.scale()));
+      proj = d3.geoMercator().scale(scale).center(center).translate([w / 2, h / 2]);
+
+      if (countNeighbors(proj) < 2) {
+        let s = scale, bestWithNeighbor = countNeighbors(proj) >= 1 ? proj : null;
+        while (s > 150) {
+          s = Math.round(s * 0.75);
+          const tp = d3.geoMercator().scale(s).center(center).translate([w / 2, h / 2]);
+          const n = countNeighbors(tp);
+          if (n >= 1) bestWithNeighbor = tp;
+          if (n >= 2) { proj = tp; break; }
+        }
+        if (countNeighbors(proj) < 2) {
+          proj = bestWithNeighbor ?? d3.geoMercator().fitExtent([[4, 4], [w - 4, h - 4]], {
+            type: 'FeatureCollection', features: getBoundedContFeatures(),
+          });
+        }
+      }
+      projection = proj;
+    } else {
+      projection = d3.geoMercator().fitExtent([[4, 4], [w - 4, h - 4]], {
+        type: 'FeatureCollection', features: getBoundedContFeatures(),
+      });
+    }
+
+    // ── Slide 2: continent overview with ocean labels ─────────
+    // Build the projection manually: d3.geoBounds on a lon/lat rectangle polygon
+    // treats it as going the long way around the globe (GeoJSON right-hand rule),
+    // so fitExtent returns world-scale. Instead, compute scale from the bounds directly.
+    const ob = OVERVIEW_BOUNDS[country.continent];
+    const mercY = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
+    const lonRad = (ob.lon[1] - ob.lon[0]) * Math.PI / 180;
+    const latSpanMerc = mercY(ob.lat[1]) - mercY(ob.lat[0]);
+    const overviewScale = Math.min((w - 8) / lonRad, (h - 8) / latSpanMerc);
+    const overviewProj = d3.geoMercator()
+      .scale(overviewScale)
+      .center([(ob.lon[0] + ob.lon[1]) / 2, (ob.lat[0] + ob.lat[1]) / 2])
+      .translate([w / 2, h / 2]);
+
+    // ── Build SVG helpers ─────────────────────────────────────
     const NS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('width', w);
-    svg.setAttribute('height', h);
-    svg.style.cssText = 'display:block;border-radius:12px;margin:0 auto;';
 
-    const bg = document.createElementNS(NS, 'rect');
-    bg.setAttribute('width', w);
-    bg.setAttribute('height', h);
-    bg.setAttribute('fill', '#0a1628');
-    svg.appendChild(bg);
+    const makeSVG = () => {
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      svg.setAttribute('width', '100%');
+      svg.style.display = 'block';
+      return svg;
+    };
+    const addRect = (svg, fill) => {
+      const r = document.createElementNS(NS, 'rect');
+      r.setAttribute('width', w); r.setAttribute('height', h); r.setAttribute('fill', fill);
+      svg.appendChild(r);
+    };
+    const addPath = (svg, d, fill, stroke, sw) => {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', d); p.setAttribute('fill', fill);
+      p.setAttribute('stroke', stroke); p.setAttribute('stroke-width', sw);
+      svg.appendChild(p);
+    };
 
-    continentFeatures.forEach(feat => {
-      const isTarget = +feat.id === country.numeric;
-      const d = pathGen(feat);
-      if (!d) return;
-      const path = document.createElementNS(NS, 'path');
-      path.setAttribute('d', d);
-      path.setAttribute('fill', isTarget ? '#818cf8' : '#1e3a5f');
-      path.setAttribute('stroke', '#0f172a');
-      path.setAttribute('stroke-width', '0.7');
-      svg.appendChild(path);
+    const addOceanLabels = (svg, proj) => {
+      OCEAN_LABELS.forEach(({ text, lon, lat }) => {
+        const pt = proj([lon, lat]);
+        if (!pt || pt[0] < 8 || pt[0] > w - 8 || pt[1] < 8 || pt[1] > h - 8) return;
+        const t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', pt[0]); t.setAttribute('y', pt[1]);
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('dominant-baseline', 'middle');
+        t.setAttribute('font-size', '9');
+        t.setAttribute('font-family', 'sans-serif');
+        t.setAttribute('font-style', 'italic');
+        t.setAttribute('fill', '#3d6fa8');
+        t.setAttribute('pointer-events', 'none');
+        t.textContent = text;
+        svg.appendChild(t);
+      });
+    };
+
+    // Slide 1: overview — continent map with ocean labels (shown first)
+    const svgOv = makeSVG();
+    const pgOv = d3.geoPath(overviewProj);
+    addRect(svgOv, '#071428');
+    allFeatures.forEach(feat => {
+      const d = pgOv(feat); if (!d) return;
+      const isTgt = +feat.id === +country.numeric;
+      if (isTgt) addPath(svgOv, d, '#f59e0b', '#fde68a', '1.5');
+      else       addPath(svgOv, d, '#1e4d8c', '#3b82f6', '0.6');
     });
+    addOceanLabels(svgOv, overviewProj);
+
+    // Slide 2: detail — zoomed view with ocean labels
+    const svgDt = makeSVG();
+    const pgDt = d3.geoPath(projection);
+    addRect(svgDt, '#0d1f3c');
+    continentFeatures.forEach(feat => {
+      if (+feat.id === +country.numeric) return;
+      const d = pgDt(feat); if (!d) return;
+      addPath(svgDt, d, '#1e4d8c', '#3b82f6', '0.8');
+    });
+    const tgtDt = continentFeatures.find(f => +f.id === +country.numeric);
+    if (tgtDt) { const d = pgDt(tgtDt); if (d) addPath(svgDt, d, '#f59e0b', '#fde68a', '2'); }
+    addOceanLabels(svgDt, projection);
+
+    // ── Build swipeable slider ────────────────────────────────
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;border-radius:12px;overflow:hidden;touch-action:pan-y;user-select:none;';
+
+    const track = document.createElement('div');
+    track.style.cssText = 'display:flex;width:200%;transition:transform 0.3s ease;';
+
+    const makeSlide = (svg) => {
+      const div = document.createElement('div');
+      div.style.cssText = 'width:50%;';  // 50% of 200% track = 100% of container
+      div.appendChild(svg);
+      return div;
+    };
+    track.appendChild(makeSlide(svgOv));
+    track.appendChild(makeSlide(svgDt));
+    wrap.appendChild(track);
+
+    // Dot indicators
+    const dotsWrap = document.createElement('div');
+    dotsWrap.style.cssText = 'position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;pointer-events:auto;';
+    const makeDot = (active) => {
+      const d = document.createElement('div');
+      d.style.cssText = `width:7px;height:7px;border-radius:50%;background:${active ? '#f59e0b' : 'rgba(255,255,255,0.3)'};transition:background 0.2s;cursor:pointer;`;
+      return d;
+    };
+    const dot1 = makeDot(true), dot2 = makeDot(false);
+    dotsWrap.appendChild(dot1);
+    dotsWrap.appendChild(dot2);
+    wrap.appendChild(dotsWrap);
+
+    let current = 0;
+    const goTo = (idx) => {
+      current = idx;
+      track.style.transform = idx === 0 ? 'translateX(0)' : 'translateX(-50%)';
+      dot1.style.background = idx === 0 ? '#f59e0b' : 'rgba(255,255,255,0.3)';
+      dot2.style.background = idx === 1 ? '#f59e0b' : 'rgba(255,255,255,0.3)';
+    };
+
+    dot1.addEventListener('click', e => { e.stopPropagation(); goTo(0); });
+    dot2.addEventListener('click', e => { e.stopPropagation(); goTo(1); });
+
+    let startX = 0, startY = 0, dragging = false;
+    wrap.addEventListener('pointerdown', e => {
+      if (e.target === dot1 || e.target === dot2) return;
+      startX = e.clientX; startY = e.clientY; dragging = true;
+    });
+    wrap.addEventListener('pointerup', e => {
+      if (!dragging) return; dragging = false;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30)
+        goTo(dx < 0 ? Math.min(current + 1, 1) : Math.max(current - 1, 0));
+    });
+    wrap.addEventListener('pointercancel', () => { dragging = false; });
 
     container.innerHTML = '';
-    container.appendChild(svg);
-  } catch {
+    container.appendChild(wrap);
+  } catch (e) {
     container.innerHTML = '<p class="geo-map-error">Karte nicht verfügbar.<br>Internetzugang prüfen.</p>';
   }
 }

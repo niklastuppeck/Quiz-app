@@ -953,6 +953,24 @@ footer {
   background: rgba(239, 68, 68, 0.18);
 }
 
+.btn-delete-account {
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  border: 1px solid #1e293b;
+  background: transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-delete-account:active {
+  color: var(--error);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
 /* ========== REGISTER SCREEN ========== */
 .register-card {
   background: var(--bg-card);
@@ -1023,25 +1041,49 @@ footer {
 }
 
 /* ========== HOME SCREEN ========== */
-.home-greeting {
-  text-align: center;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem 0 0.25rem;
+.home-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.75rem 0 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
-.greeting-hello {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  margin-bottom: 0.15rem;
-}
-
-.greeting-name {
-  font-size: 1.6rem;
-  font-weight: 800;
+.home-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   background: linear-gradient(135deg, #6366f1, #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.home-profile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.home-profile-hello {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.home-profile-name {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.15;
 }
 
 .home-section-label {
@@ -1124,7 +1166,8 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0;
 }
 
 .geo-flag-img {

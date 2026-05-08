@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Map Swipe Test</title>
+  <style>
+    body { background: #111; margin: 0; padding: 16px; font-family: sans-serif; }
+    h3 { color: #ccc; margin: 8px 0 4px; font-size: 13px; }
+    .grid { display: flex; flex-wrap: wrap; gap: 16px; }
+    .item { flex: 0 0 560px; }
+    .geo-map-loading { color: #888; padding: 20px; text-align: center; font-family: sans-serif; }
+    .geo-map-error { color: #f66; padding: 20px; font-family: sans-serif; }
+  </style>
+</head>
+<body>
+<div class="grid">
+  <div class="item"><h3>Belgien (be)</h3><div id="m-be"></div></div>
+  <div class="item"><h3>UAE (ae)</h3><div id="m-ae"></div></div>
+  <div class="item"><h3>Taiwan (tw)</h3><div id="m-tw"></div></div>
+  <div class="item"><h3>Nigeria (ng)</h3><div id="m-ng"></div></div>
+  <div class="item"><h3>Australien (au)</h3><div id="m-au"></div></div>
+  <div class="item"><h3>Kanada (ca)</h3><div id="m-ca"></div></div>
+</div>
+<script>
+  // Stubs needed before geo.js loads
+  window.supabase = { createClient: () => ({}) };
+  window.SoundSystem = { playCorrect:()=>{}, playWrong:()=>{}, playStreak:()=>{} };
+  // geo.js references sb (supabase client) directly in stat functions, not in renderOutlineMap
+  window.sb = null;
+  // geo.js references these DOM elements in showScreen/showToast — safe to leave as stubs won't clash
+  // geo.js defines its own const state, SESSION_LENGTH, showScreen, showToast, registerCleanup
+  // so we must NOT pre-declare them here
+</script>
+<script src="data/countries.js?v=3"></script>
+<script src="geo/geo.js?v=3"></script>
+<script>
+(async () => {
+  await renderOutlineMap('be', document.getElementById('m-be'));
+  await renderOutlineMap('ae', document.getElementById('m-ae'));
+  await renderOutlineMap('tw', document.getElementById('m-tw'));
+  await renderOutlineMap('ng', document.getElementById('m-ng'));
+  await renderOutlineMap('au', document.getElementById('m-au'));
+  await renderOutlineMap('ca', document.getElementById('m-ca'));
+})();
+</script>
+</body>
+</html>
