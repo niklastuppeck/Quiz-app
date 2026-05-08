@@ -54,9 +54,9 @@ BEGIN
     RAISE EXCEPTION 'Ungültige User-ID';
   END IF;
 
-  -- Score muss exakt correct - wrong sein
-  IF NEW.score != NEW.correct - NEW.wrong THEN
-    RAISE EXCEPTION 'Ungültiger Score: % != % - %', NEW.score, NEW.correct, NEW.wrong;
+  -- Score muss exakt correct sein (keine Abzüge für falsche Antworten)
+  IF NEW.score != NEW.correct THEN
+    RAISE EXCEPTION 'Ungültiger Score: % != %', NEW.score, NEW.correct;
   END IF;
 
   -- Anzahl Fragen darf 15 nicht überschreiten, keine negativen Werte

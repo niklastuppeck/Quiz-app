@@ -514,7 +514,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-back-quiz").addEventListener("click", () => {
     stopTimer();
     SoundSystem.stopBgMusic();
-    saveWettkampfHistory(state.score, state.correct, state.wrong);
+    if (state.correct + state.wrong > 0) {
+      saveWettkampfHistory(state.score, state.correct, state.wrong);
+    }
     showScreen("screen-intro");
     updateIntroStatus();
   });
