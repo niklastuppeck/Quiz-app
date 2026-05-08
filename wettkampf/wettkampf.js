@@ -347,7 +347,6 @@ function onAnswerSelected(selectedIdx) {
     }
   } else {
     state.wrong++;
-    state.score--;
     state.streak = 0;
     SoundSystem.playWrong();
   }
@@ -369,7 +368,6 @@ function onTimeout() {
   });
 
   state.wrong++;
-  state.score--;
   state.streak = 0;
   SoundSystem.playWrong();
 
@@ -452,8 +450,7 @@ function showResult(entry, streak) {
   if (score >= 14)      { emoji = "🏆"; title = "Legendär!";        subtitle = "Nahezu perfekte Leistung!"; }
   else if (score >= 11) { emoji = "🎉"; title = "Sehr stark!";      subtitle = "Du hast den Wettkampf dominiert."; }
   else if (score >= 7)  { emoji = "👍"; title = "Gute Leistung!";   subtitle = "Noch ein bisschen Luft nach oben."; }
-  else if (score >= 0)  { emoji = "🤔"; title = "Knappes Ergebnis"; subtitle = "Beim nächsten Mal klappt's besser!"; }
-  else                  { emoji = "📚"; title = "Noch üben!";       subtitle = "Nutze den Übungs-Modus zum Lernen."; }
+  else                  { emoji = "🤔"; title = "Knappes Ergebnis"; subtitle = "Beim nächsten Mal klappt's besser!"; }
 
   document.getElementById("result-emoji").textContent = emoji;
   document.getElementById("result-title").textContent = title;
@@ -517,6 +514,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-back-quiz").addEventListener("click", () => {
     stopTimer();
     SoundSystem.stopBgMusic();
+    saveWettkampfHistory(state.score, state.correct, state.wrong);
     showScreen("screen-intro");
     updateIntroStatus();
   });
